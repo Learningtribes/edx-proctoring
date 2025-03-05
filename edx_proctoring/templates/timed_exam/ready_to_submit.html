@@ -1,5 +1,5 @@
 {% load i18n %}
-<div class="sequence timed-exam completed" data-exam-id="{{exam_id}}">
+<div class="sequence timed-exam completed timed-exam-block" data-exam-id="{{exam_id}}">
   <h3>
     {% blocktrans %}
       Are you sure that you want to submit your timed exam?
@@ -15,18 +15,20 @@
       After you submit your exam, your exam will be graded.
     {% endblocktrans %}
   </p>
-  <button type="button" name="submit-proctored-exam" class="exam-action-button btn btn-pl-primary btn-base" data-action="submit" data-exam-id="{{exam_id}}" data-change-state-url="{{change_state_url}}">
-    {% blocktrans %}
-      Yes, submit my timed exam.
-    {% endblocktrans %}
-  </button>
-  {% if does_time_remain %}
-    <button type="button" name="goback-proctored-exam" class="exam-action-button btn btn-secondary btn-base" data-action="start" data-exam-id="{{exam_id}}" data-change-state-url="{{change_state_url}}" style="box-shadow: none">
-      {% blocktrans %}
-        No, I want to continue working.
-      {% endblocktrans %}
-    </button>
-  {% endif %}
+  <div class="align-self-end">
+      {% if does_time_remain %}
+        <button type="button" name="goback-proctored-exam" class="exam-action-button ds-button" data-action="start" data-exam-id="{{exam_id}}" data-change-state-url="{{change_state_url}}" style="box-shadow: none">
+          {% blocktrans %}
+            No, I want to continue working.
+          {% endblocktrans %}
+        </button>
+      {% endif %}
+      <button type="button" name="submit-proctored-exam" class="exam-action-button ds-button" data-action="submit" data-exam-id="{{exam_id}}" data-change-state-url="{{change_state_url}}">
+        {% blocktrans %}
+          Yes, submit my timed exam.
+        {% endblocktrans %}
+      </button>
+  </div>
 </div>
 <script type="text/javascript">
   $('.exam-action-button').click(
