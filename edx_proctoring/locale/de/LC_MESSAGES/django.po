@@ -1,0 +1,38 @@
+# #-#-#-#-#  django.po (edx-proctoring)  #-#-#-#-#
+# edX translation file
+# Copyright (C) 2018 edX
+# This file is distributed under the GNU AFFERO GENERAL PUBLIC LICENSE.
+# EdX Team <info@edx.org>, 2018.
+#
+# Translators:
+# Aika1 <katepapastavrou@gmail.com>, 2016
+# Katerina Ligkovanli <kaligova@gmail.com>, 2016
+# Foteini T. <ftouli@yahoo.gr>, 2016
+# EEYEM, 2016
+# STERGIOU IOANNIS <stergiou_john@yahoo.gr>, 2016
+msgid ""
+msgstr ""
+"Project-Id-Version: edx-proctoring\n"
+"Report-Msgid-Bugs-To: openedx-translation@googlegroups.com\n"
+"POT-Creation-Date: 2017-02-15 17:16-0500\n"
+"PO-Revision-Date: 2018-03-14 17:16-0500\n"
+"Last-Translator: STERGIOU IOANNIS <stergiou_john@yahoo.gr>, 2016\n"
+"Language-Team: German (Germany) (https://www.transifex.com/open-edx/"
+"teams/6205/de_DE/)\n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: templates/timed_exam/entrance.html:10
+msgid "This exam has a strict time limit. To pass, you must complete all problems within the allotted time. Once you click \"I am ready to start this timed exam\" you will have \" %(lower_total_time)s to complete and submit your answers."
+msgstr "Diese Prüfung hat eine strenge Zeitbegrenzung. Um zu bestehen, müssen Sie alle Aufgaben in der vorgegebenen Zeit abschließen. Sobald Sie auf \"Ich bin bereit, diese zeitgesteuerte Prüfung zu starten\" klicken, haben Sie \" %(lower_total_time)s, um Ihre Antworten zu vervollständigen und einzureichen."
+
+#: templates/timed_exam/footer.html:3
+msgid "Can I get extra time for my exam?"
+msgstr "Kann ich mehr Zeit für meine Prüfung bekommen?"
+
+#: templates/timed_exam/footer.html:4
+msgid "If you have a disability, you may qualify for additional time on timed exams. Contact your course team for details about time extensions."
+msgstr "Wenn Sie eine Behinderung haben, können Sie möglicherweise zusätzliche Zeit für zeitgesteuerte Prüfungen erhalten. Wenden Sie sich an Ihr Kursteam, um Einzelheiten zu Zeitverlängerungen zu erfahren."

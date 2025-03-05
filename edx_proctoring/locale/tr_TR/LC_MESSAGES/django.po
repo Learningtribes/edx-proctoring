@@ -3,7 +3,7 @@
 # Copyright (C) 2018 edX
 # This file is distributed under the GNU AFFERO GENERAL PUBLIC LICENSE.
 # EdX Team <info@edx.org>, 2018.
-# 
+#
 # Translators:
 # Hakan Şenel <hgsenel@gmail.com>, 2016
 # ali selek <aliselek01@gmail.com>, 2016
@@ -849,30 +849,9 @@ msgid ""
 "    "
 msgstr ""
 
-#: templates/timed_exam/entrance.html:9
-msgid "This exam has a time limit associated with it."
-msgstr "Bu sınava bağlı bir süre sınırı bulunmaktadır."
-
-#: templates/timed_exam/entrance.html:11
-msgid "To pass this exam, you must complete the problems in the time allowed."
-msgstr ""
-"Bu sınavdan geçmek için, problemleri size tanınan sürede çözmelisiniz."
-
-#: templates/timed_exam/entrance.html:13
-msgid "After you select "
-msgstr "Seçtikten sonra"
-
-#: templates/timed_exam/entrance.html:15
-msgid "I am ready to start this timed exam,"
-msgstr "Süre sınırlı bu sınava başlamaya hazırım,"
-
-#: templates/timed_exam/entrance.html:17
-msgid "you will have "
-msgstr "sınavı tamamlamak"
-
-#: templates/timed_exam/entrance.html:17
-msgid " to complete and submit the exam."
-msgstr "ve göndermek zorundasınız."
+#: templates/timed_exam/entrance.html:10
+msgid "This exam has a strict time limit. To pass, you must complete all problems within the allotted time. Once you click \"I am ready to start this timed exam\" you will have \" %(lower_total_time)s to complete and submit your answers."
+msgstr "Bu sınavın katı bir zaman sınırı vardır. Geçmek için, tüm sorunları ayrılan süre içinde tamamlamanız gerekir. \"Bu zamanlı sınava başlamaya hazırım\" düğmesine tıkladığınızda, cevaplarınızı tamamlamak ve göndermek için \" %(lower_total_time)s süreniz olacak."
 
 #: templates/timed_exam/entrance.html:21
 msgid ""
@@ -885,22 +864,12 @@ msgstr ""
 "      "
 
 #: templates/timed_exam/footer.html:3
-msgid "Can I request additional time to complete my exam?"
-msgstr "Sınavımı tamamlamak için ek süre isteyebilir miyim?"
+msgid "Can I get extra time for my exam?"
+msgstr "Sınavım için ekstra süre alabilir miyim?"
 
 #: templates/timed_exam/footer.html:4
-msgid ""
-"\n"
-"      If you have disabilities,\n"
-"      you might be eligible for an additional time allowance on timed exams.\n"
-"      Ask your course team for information about additional time allowances.\n"
-"    "
-msgstr ""
-"\n"
-"      Bedensel engellerinizin olması halinde,\n"
-"      zaman sınırlı sınavlar için ek süre talep edebilirsiniz.\n"
-"      Ek süre talepleri için gerekli koşulları ders takımınızdan öğrenebilirsiniz.\n"
-"    "
+msgid "If you have a disability, you may qualify for additional time on timed exams. Contact your course team for details about time extensions."
+msgstr "Engeliniz varsa, zamanlı sınavlar için ek süre almaya hak kazanabilirsiniz. Zaman uzatmalarıyla ilgili ayrıntılar için ders ekibinizle iletişime geçin."
 
 #: templates/timed_exam/ready_to_submit.html:4
 msgid ""

@@ -795,28 +795,8 @@ msgid ""
 "    "
 msgstr ""
 
-#: templates/timed_exam/entrance.html:9
-msgid "This exam has a time limit associated with it."
-msgstr ""
-
-#: templates/timed_exam/entrance.html:11
-msgid "To pass this exam, you must complete the problems in the time allowed."
-msgstr ""
-
-#: templates/timed_exam/entrance.html:13
-msgid "After you select "
-msgstr ""
-
-#: templates/timed_exam/entrance.html:15
-msgid "I am ready to start this timed exam,"
-msgstr ""
-
-#: templates/timed_exam/entrance.html:17
-msgid "you will have "
-msgstr ""
-
-#: templates/timed_exam/entrance.html:17
-msgid " to complete and submit the exam."
+#: templates/timed_exam/entrance.html:10
+msgid "This exam has a strict time limit. To pass, you must complete all problems within the allotted time. Once you click \"I am ready to start this timed exam\" you will have \" %(lower_total_time)s to complete and submit your answers."
 msgstr ""
 
 #: templates/timed_exam/entrance.html:21
@@ -827,18 +807,11 @@ msgid ""
 msgstr ""
 
 #: templates/timed_exam/footer.html:3
-msgid "Can I request additional time to complete my exam?"
+msgid "Can I get extra time for my exam?"
 msgstr ""
 
 #: templates/timed_exam/footer.html:4
-msgid ""
-"\n"
-"      If you have disabilities,\n"
-"      you might be eligible for an additional time allowance on timed "
-"exams.\n"
-"      Ask your course team for information about additional time "
-"allowances.\n"
-"    "
+msgid "If you have a disability, you may qualify for additional time on timed exams. Contact your course team for details about time extensions."
 msgstr ""
 
 #: templates/timed_exam/ready_to_submit.html:4
