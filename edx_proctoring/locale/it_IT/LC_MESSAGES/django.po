@@ -45,6 +45,10 @@ msgstr "Posso ottenere più tempo per il mio esame?"
 msgid "If you have a disability, you may qualify for additional time on timed exams. Contact your course team for details about time extensions."
 msgstr "Se hai una disabilità, potresti avere diritto a tempo aggiuntivo per gli esami a tempo. Contatta il team del corso per i dettagli sulle estensioni di tempo."
 
+#: templates/timed_exam/submitted.html:6
+msgid "The time allotted for this exam has expired. Your exam has been submitted and any work you completed will be graded."
+msgstr "Il tempo assegnato per questo esame è scaduto. Il tuo esame è stato inviato e qualsiasi lavoro tu abbia completato sarà valutato."
+
 #: templates/timed_exam/submitted.html:10
 msgid "You have submitted your timed exam."
 msgstr "Hai inviato il tuo esame a tempo."

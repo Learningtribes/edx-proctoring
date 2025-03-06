@@ -45,6 +45,10 @@ msgstr "我可以为考试争取更多时间吗？"
 msgid "If you have a disability, you may qualify for additional time on timed exams. Contact your course team for details about time extensions."
 msgstr "如果您有残疾，您可能有资格在计时考试中获得额外时间。有关时间延长的详细信息，请联系您的课程团队。"
 
+#: templates/timed_exam/submitted.html:6
+msgid "The time allotted for this exam has expired. Your exam has been submitted and any work you completed will be graded."
+msgstr "本次考试的时间已结束。你的考试已提交，所有已完成的部分将被评分。"
+
 #: templates/timed_exam/submitted.html:10
 msgid "You have submitted your timed exam."
 msgstr "你已提交你的限时考试。"

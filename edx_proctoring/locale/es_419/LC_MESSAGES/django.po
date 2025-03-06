@@ -920,13 +920,8 @@ msgid "No, I want to continue working."
 msgstr "No, quiero seguir trabajando."
 
 #: templates/timed_exam/submitted.html:6
-msgid ""
-"\n"
-"        The time allotted for this exam has expired. Your exam has been submitted and any work you completed will be graded.\n"
-"      "
-msgstr ""
-"\n"
-"El tiempo permitido para este examen ha vencido. Su examen ha sido enviado y el progreso que completó será calificado."
+msgid "The time allotted for this exam has expired. Your exam has been submitted and any work you completed will be graded."
+msgstr "El tiempo permitido para este examen ha vencido. Su examen ha sido enviado y el progreso que completó será calificado."
 
 #: templates/timed_exam/submitted.html:10
 msgid "You have submitted your timed exam."
