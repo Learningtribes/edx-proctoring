@@ -66,6 +66,10 @@ msgstr "请确保在提交考试之前，你已为每道题选择“提交”。
 msgid "After you submit your exam, your exam will be graded."
 msgstr "考试提交后，你的考试将被评分。"
 
+#: templates/timed_exam/ready_to_submit.html:19
+msgid "Yes, submit my timed exam."
+msgstr "是的，提交我的限时考试。"
+
 #: templates/timed_exam/ready_to_submit.html:25
 msgid "No, I want to continue working."
 msgstr "不，我要继续答题。"

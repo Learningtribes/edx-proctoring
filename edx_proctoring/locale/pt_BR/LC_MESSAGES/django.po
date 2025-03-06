@@ -66,6 +66,10 @@ msgstr "Certifique-se de ter selecionado \"Enviar\" para cada questão antes de 
 msgid "After you submit your exam, your exam will be graded."
 msgstr "Após enviar seu exame, ele será avaliado."
 
+#: templates/timed_exam/ready_to_submit.html:19
+msgid "Yes, submit my timed exam."
+msgstr "Sim, enviar meu exame cronometrado."
+
 #: templates/timed_exam/ready_to_submit.html:25
 msgid "No, I want to continue working."
 msgstr "Não, quero continuar trabalhando."

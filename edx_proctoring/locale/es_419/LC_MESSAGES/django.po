@@ -907,13 +907,8 @@ msgid "After you submit your exam, your exam will be graded."
 msgstr "Después de enviar tu examen, este será calificado."
 
 #: templates/timed_exam/ready_to_submit.html:19
-msgid ""
-"\n"
-"      Yes, submit my timed exam.\n"
-"    "
-msgstr ""
-"\n"
-"Sí, enviar my examen cronometrado."
+msgid "Yes, submit my timed exam."
+msgstr "Sí, enviar mi examen cronometrado."
 
 #: templates/timed_exam/ready_to_submit.html:25
 msgid "No, I want to continue working."

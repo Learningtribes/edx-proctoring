@@ -756,11 +756,8 @@ msgid "After you submit your exam, your exam will be graded."
 msgstr "Après avoir soumis votre examen, il sera noté."
 
 #: templates/timed_exam/ready_to_submit.html:19
-msgid ""
-"\n"
-"      Yes, submit my timed exam.\n"
-"    "
-msgstr ""
+msgid "Yes, submit my timed exam."
+msgstr "Oui, soumettre mon examen chronométré."
 
 #: templates/timed_exam/ready_to_submit.html:25
 msgid "No, I want to continue working."

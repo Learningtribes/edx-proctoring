@@ -66,6 +66,10 @@ msgstr "Stellen Sie sicher, dass Sie für jede Aufgabe „Einreichen“ ausgewä
 msgid "After you submit your exam, your exam will be graded."
 msgstr "Nachdem Sie Ihre Prüfung eingereicht haben, wird sie bewertet."
 
+#: templates/timed_exam/ready_to_submit.html:19
+msgid "Yes, submit my timed exam."
+msgstr "Ja, meine zeitgesteuerte Prüfung einreichen."
+
 #: templates/timed_exam/ready_to_submit.html:25
 msgid "No, I want to continue working."
 msgstr "Nein, ich möchte weiterarbeiten."
