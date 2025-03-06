@@ -1,5 +1,5 @@
 {% load i18n %}
-<div class="sequence proctored-exam completed" data-exam-id="{{exam_id}}">
+<div class="sequence proctored-exam completed timed-exam-block" data-exam-id="{{exam_id}}">
   <h3>
     {% blocktrans %}
       You have submitted this practice proctored exam
@@ -13,7 +13,7 @@
     {% endblocktrans %}
   </p>
   <button class="gated-sequence start-timed-exam action-primary" data-ajax-url="{{enter_exam_endpoint}}" data-exam-id="{{exam_id}}" data-attempt-proctored=true data-start-immediately=false>
-    
+
     <a>
       {% trans "You can also retry this practice exam" %}
     </a>
