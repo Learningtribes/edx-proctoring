@@ -2,17 +2,13 @@
 <div class="sequence timed-exam entrance timed-exam-block" data-exam-id="{{exam_id}}">
   <h3>
     <i class="far fa-clock" aria-hidden="true"></i>
-    {% blocktrans %}
-    {{ exam_name }} is a Timed Exam ({{total_time}})
-    {% endblocktrans %}
+    {% blocktrans %}{{ exam_name }} is a Timed Exam ({{total_time}}){% endblocktrans %}
   </h3>
   <p>
     {% blocktrans with lower_total_time=total_time|lower %}This exam has a strict time limit. To pass, you must complete all problems within the allotted time. Once you click "I am ready to start this timed exam" you will have " {{lower_total_time}} to complete and submit your answers.{% endblocktrans %}
   </p>
   <button class="gated-sequence start-timed-exam ds-button" data-ajax-url="{{enter_exam_endpoint}}" data-exam-id="{{exam_id}}">
-      {% blocktrans %}
-        I am ready to start this timed exam.
-      {% endblocktrans %}
+    {% trans "I am ready to start this timed exam." %}
   </button>
 </div>
 {% if not hide_extra_time_footer %}

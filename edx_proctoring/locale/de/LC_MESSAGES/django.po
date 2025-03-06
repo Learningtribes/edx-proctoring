@@ -25,9 +25,17 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: templates/timed_exam/entrance.html:4
+msgid "%(exam_name)s is a Timed Exam (%(total_time)s)"
+msgstr "%(exam_name)s ist eine zeitgesteuerte Prüfung (%(total_time)s)"
+
 #: templates/timed_exam/entrance.html:10
 msgid "This exam has a strict time limit. To pass, you must complete all problems within the allotted time. Once you click \"I am ready to start this timed exam\" you will have \" %(lower_total_time)s to complete and submit your answers."
 msgstr "Diese Prüfung hat eine strenge Zeitbegrenzung. Um zu bestehen, müssen Sie alle Aufgaben in der vorgegebenen Zeit abschließen. Sobald Sie auf \"Ich bin bereit, diese zeitgesteuerte Prüfung zu starten\" klicken, haben Sie \" %(lower_total_time)s, um Ihre Antworten zu vervollständigen und einzureichen."
+
+#: templates/timed_exam/entrance.html:21
+msgid "I am ready to start this timed exam."
+msgstr "Ich bin bereit, diese zeitgesteuerte Prüfung zu starten."
 
 #: templates/timed_exam/footer.html:3
 msgid "Can I get extra time for my exam?"
@@ -36,3 +44,24 @@ msgstr "Kann ich mehr Zeit für meine Prüfung bekommen?"
 #: templates/timed_exam/footer.html:4
 msgid "If you have a disability, you may qualify for additional time on timed exams. Contact your course team for details about time extensions."
 msgstr "Wenn Sie eine Behinderung haben, können Sie möglicherweise zusätzliche Zeit für zeitgesteuerte Prüfungen erhalten. Wenden Sie sich an Ihr Kursteam, um Einzelheiten zu Zeitverlängerungen zu erfahren."
+
+#: templates/timed_exam/submitted.html:10
+msgid "You have submitted your timed exam."
+msgstr "Sie haben Ihre zeitgesteuerte Prüfung eingereicht."
+
+#: templates/timed_exam/ready_to_submit.html:4
+msgid "Are you sure that you want to submit your timed exam?"
+msgstr "Sind Sie sicher, dass Sie Ihre zeitgesteuerte Prüfung einreichen möchten?"
+
+#: templates/proctored_exam/ready_to_submit.html:9
+#: templates/timed_exam/ready_to_submit.html:9
+msgid "Make sure that you have selected \"Submit\" for each problem before you submit your exam."
+msgstr "Stellen Sie sicher, dass Sie für jede Aufgabe „Einreichen“ ausgewählt haben, bevor Sie Ihre Prüfung einreichen."
+
+#: templates/timed_exam/ready_to_submit.html:14
+msgid "After you submit your exam, your exam will be graded."
+msgstr "Nachdem Sie Ihre Prüfung eingereicht haben, wird sie bewertet."
+
+#: templates/timed_exam/ready_to_submit.html:25
+msgid "No, I want to continue working."
+msgstr "Nein, ich möchte weiterarbeiten."
