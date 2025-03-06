@@ -41,7 +41,7 @@ upgrade: ## update the requirements/*.txt files with the latest packages satisfy
 	mv requirements/test.tmp requirements/test.txt
 
 requirements: ## install development environment requirements
-	pip install -qr requirements/dev.txt --exists-action w
+	pip install -r requirements/dev.txt --exists-action w
 	pip-sync requirements/*.txt requirements/private.*
 
 install: upgrade requirements
@@ -75,11 +75,11 @@ diff_cover: test
 
 ## Localization targets
 
-extract_translations: ## extract strings to be translated, outputting .mo files
+extract_translations: ## extract strings to be translated, outputting .po files
 	cd edx_proctoring && ../manage.py makemessages -l en -v1 -d django
 	cd edx_proctoring && ../manage.py makemessages -l en -v1 -d djangojs
 
-compile_translations: ## compile translation files, outputting .po files for each supported language
+compile_translations: ## compile translation files, outputting .mo files for each supported language
 	cd edx_proctoring && ../manage.py compilemessages
 
 detect_changed_source_translations:

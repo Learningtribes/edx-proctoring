@@ -3,7 +3,7 @@
 # Copyright (C) 2018 edX
 # This file is distributed under the GNU AFFERO GENERAL PUBLIC LICENSE.
 # EdX Team <info@edx.org>, 2018.
-# 
+#
 # Translators:
 # Antonio Pardo <apardo@alabs.org>, 2016
 # Juan Camilo Montoya Franco <juan.montoya@edunext.co>, 2016
@@ -742,13 +742,8 @@ msgstr ""
 
 #: templates/proctored_exam/ready_to_submit.html:9
 #: templates/timed_exam/ready_to_submit.html:9
-msgid ""
-"\n"
-"      Make sure that you have selected \"Submit\" for each problem before you submit your exam.\n"
-"    "
-msgstr ""
-"\n"
-"Confirme que haya seleccionado \"Enviar\" para cada problema antes de enviar examen completo."
+msgid "Make sure that you have selected \"Submit\" for each problem before you submit your exam."
+msgstr "Asegúrate de haber seleccionado \"Enviar\" para cada problema antes de enviar tu examen."
 
 #: templates/proctored_exam/ready_to_submit.html:14
 msgid ""
@@ -884,120 +879,48 @@ msgstr ""
 "Después de que la fecha límite de este examen haya pasado, podrá revisar sus respuestas en esta página."
 
 #: templates/timed_exam/entrance.html:4
-#, python-format
-msgid ""
-"\n"
-"    %(exam_name)s is a Timed Exam (%(total_time)s)\n"
-"    "
-msgstr ""
-"\n"
-"%(exam_name)s es un examen cronometrado (%(total_time)s)"
+msgid "%(exam_name)s is a Timed Exam (%(total_time)s)"
+msgstr "%(exam_name)s es un examen cronometrado (%(total_time)s)"
 
-#: templates/timed_exam/entrance.html:9
-msgid "This exam has a time limit associated with it."
-msgstr "Este examen tiene un límite de tiempo."
-
-#: templates/timed_exam/entrance.html:11
-msgid "To pass this exam, you must complete the problems in the time allowed."
-msgstr ""
-"Para aprobar este examen, hay que completar los problemas durante el tiempo "
-"permitido."
-
-#: templates/timed_exam/entrance.html:13
-msgid "After you select "
-msgstr "Después de seleccionar"
-
-#: templates/timed_exam/entrance.html:15
-msgid "I am ready to start this timed exam,"
-msgstr "Estoy listo/a para empezar este examen cronometrado"
-
-#: templates/timed_exam/entrance.html:17
-msgid "you will have "
-msgstr "Tendrá"
-
-#: templates/timed_exam/entrance.html:17
-msgid " to complete and submit the exam."
-msgstr "para completar y enviar el examen."
+#: templates/timed_exam/entrance.html:10
+msgid "This exam has a strict time limit. To pass, you must complete all problems within the allotted time. Once you click \"I am ready to start this timed exam\" you will have \" %(lower_total_time)s to complete and submit your answers."
+msgstr "Este examen tiene un límite de tiempo estricto. Para aprobar, debe completar todos los problemas dentro del tiempo asignado. Una vez que haga clic en \"Estoy listo para comenzar este examen cronometrado\" tendrá \" %(lower_total_time)s para completar y enviar sus respuestas."
 
 #: templates/timed_exam/entrance.html:21
-msgid ""
-"\n"
-"        I am ready to start this timed exam.\n"
-"      "
-msgstr ""
-"\n"
-"Estoy listo/a para empezar este examen cronometrado."
+msgid "I am ready to start this timed exam."
+msgstr "Estoy listo/a para comenzar este examen cronometrado."
 
 #: templates/timed_exam/footer.html:3
-msgid "Can I request additional time to complete my exam?"
-msgstr "¿Puedo pedir tiempo adicional para completar mi examen?"
+msgid "Can I get extra time for my exam?"
+msgstr "¿Puedo obtener tiempo extra para mi examen?"
 
 #: templates/timed_exam/footer.html:4
-msgid ""
-"\n"
-"      If you have disabilities,\n"
-"      you might be eligible for an additional time allowance on timed exams.\n"
-"      Ask your course team for information about additional time allowances.\n"
-"    "
-msgstr ""
-"\n"
-"Si tiene una incapacidad,\n"
-"puede ser eligible para un permiso de tiempo adicional en los exámenes cronometrados.\n"
-"Pida información sobre tiempo adicional al equipo del curso."
+msgid "If you have a disability, you may qualify for additional time on timed exams. Contact your course team for details about time extensions."
+msgstr "Si tienes una discapacidad, podrías calificar para tiempo adicional en los exámenes cronometrados. Contacta a tu equipo del curso para detalles sobre las extensiones de tiempo."
 
 #: templates/timed_exam/ready_to_submit.html:4
-msgid ""
-"\n"
-"      Are you sure that you want to submit your timed exam?\n"
-"    "
-msgstr ""
-"\n"
-"¿Está seguro de que quiere enviar su examen cronometrado?"
+msgid "Are you sure that you want to submit your timed exam?"
+msgstr "¿Estás seguro/a de que quieres enviar tu examen cronometrado?"
 
 #: templates/timed_exam/ready_to_submit.html:14
-msgid ""
-"\n"
-"      After you submit your exam, your exam will be graded.\n"
-"    "
-msgstr ""
-"\n"
-"Después de enviar el examen, el examen será calificado."
+msgid "After you submit your exam, your exam will be graded."
+msgstr "Después de enviar tu examen, este será calificado."
 
 #: templates/timed_exam/ready_to_submit.html:19
-msgid ""
-"\n"
-"      Yes, submit my timed exam.\n"
-"    "
-msgstr ""
-"\n"
-"Sí, enviar my examen cronometrado."
+msgid "Yes, submit my timed exam."
+msgstr "Sí, enviar mi examen cronometrado."
 
 #: templates/timed_exam/ready_to_submit.html:25
-msgid ""
-"\n"
-"        No, I want to continue working.\n"
-"      "
-msgstr ""
-"\n"
-"No, quiero seguir trabajando."
+msgid "No, I want to continue working."
+msgstr "No, quiero seguir trabajando."
 
 #: templates/timed_exam/submitted.html:6
-msgid ""
-"\n"
-"        The time allotted for this exam has expired. Your exam has been submitted and any work you completed will be graded.\n"
-"      "
-msgstr ""
-"\n"
-"El tiempo permitido para este examen ha vencido. Su examen ha sido enviado y el progreso que completó será calificado."
+msgid "The time allotted for this exam has expired. Your exam has been submitted and any work you completed will be graded."
+msgstr "El tiempo permitido para este examen ha vencido. Su examen ha sido enviado y el progreso que completó será calificado."
 
 #: templates/timed_exam/submitted.html:10
-msgid ""
-"\n"
-"        You have submitted your timed exam.\n"
-"      "
-msgstr ""
-"\n"
-"Ha enviado su examen cronometrado."
+msgid "You have submitted your timed exam."
+msgstr "Has enviado tu examen cronometrado."
 
 #: templates/timed_exam/submitted.html:18
 #, python-format

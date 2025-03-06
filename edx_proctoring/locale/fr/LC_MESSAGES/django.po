@@ -3,7 +3,7 @@
 # Copyright (C) 2018 edX
 # This file is distributed under the GNU AFFERO GENERAL PUBLIC LICENSE.
 # EdX Team <info@edx.org>, 2018.
-# 
+#
 # Translators:
 # Olivier Marquez <oliviermarquez@gmail.com>, 2016
 # laurentFUN <laurent.at.fun@gmail.com>, 2016
@@ -622,11 +622,8 @@ msgstr ""
 
 #: templates/proctored_exam/ready_to_submit.html:9
 #: templates/timed_exam/ready_to_submit.html:9
-msgid ""
-"\n"
-"      Make sure that you have selected \"Submit\" for each problem before you submit your exam.\n"
-"    "
-msgstr ""
+msgid "Make sure that you have selected \"Submit\" for each problem before you submit your exam."
+msgstr "Assurez-vous d'avoir sélectionné \"Soumettre\" pour chaque question avant de soumettre votre examen."
 
 #: templates/proctored_exam/ready_to_submit.html:14
 msgid ""
@@ -731,98 +728,48 @@ msgid ""
 msgstr ""
 
 #: templates/timed_exam/entrance.html:4
-#, python-format
-msgid ""
-"\n"
-"    %(exam_name)s is a Timed Exam (%(total_time)s)\n"
-"    "
-msgstr ""
+msgid "%(exam_name)s is a Timed Exam (%(total_time)s)"
+msgstr "%(exam_name)s est un examen chronométré (%(total_time)s)"
 
-#: templates/timed_exam/entrance.html:9
-msgid "This exam has a time limit associated with it."
-msgstr ""
-
-#: templates/timed_exam/entrance.html:11
-msgid "To pass this exam, you must complete the problems in the time allowed."
-msgstr ""
-
-#: templates/timed_exam/entrance.html:13
-msgid "After you select "
-msgstr ""
-
-#: templates/timed_exam/entrance.html:15
-msgid "I am ready to start this timed exam,"
-msgstr ""
-
-#: templates/timed_exam/entrance.html:17
-msgid "you will have "
-msgstr ""
-
-#: templates/timed_exam/entrance.html:17
-msgid " to complete and submit the exam."
-msgstr ""
+#: templates/timed_exam/entrance.html:10
+msgid "This exam has a strict time limit. To pass, you must complete all problems within the allotted time. Once you click \"I am ready to start this timed exam\" you will have \" %(lower_total_time)s to complete and submit your answers."
+msgstr "Cet examen a une limite de temps stricte. Pour réussir, vous devez terminer tous les problèmes dans le temps imparti. Une fois que vous cliquez sur \"Je suis prêt à commencer cet examen chronométré\", vous aurez \" %(lower_total_time)s pour terminer et soumettre vos réponses."
 
 #: templates/timed_exam/entrance.html:21
-msgid ""
-"\n"
-"        I am ready to start this timed exam.\n"
-"      "
-msgstr ""
+msgid "I am ready to start this timed exam."
+msgstr "Je suis prêt(e) à commencer cet examen chronométré."
 
 #: templates/timed_exam/footer.html:3
-msgid "Can I request additional time to complete my exam?"
-msgstr ""
+msgid "Can I get extra time for my exam?"
+msgstr "Puis-je obtenir plus de temps pour mon examen ?"
 
 #: templates/timed_exam/footer.html:4
-msgid ""
-"\n"
-"      If you have disabilities,\n"
-"      you might be eligible for an additional time allowance on timed exams.\n"
-"      Ask your course team for information about additional time allowances.\n"
-"    "
-msgstr ""
+msgid "If you have a disability, you may qualify for additional time on timed exams. Contact your course team for details about time extensions."
+msgstr "Si vous avez un handicap, vous pouvez bénéficier de temps supplémentaire pour les examens chronométrés. Contactez l'équipe de votre cours pour plus de détails sur les extensions de temps."
 
 #: templates/timed_exam/ready_to_submit.html:4
-msgid ""
-"\n"
-"      Are you sure that you want to submit your timed exam?\n"
-"    "
-msgstr ""
+msgid "Are you sure that you want to submit your timed exam?"
+msgstr "Êtes-vous sûr(e) de vouloir soumettre votre examen chronométré ?"
 
 #: templates/timed_exam/ready_to_submit.html:14
-msgid ""
-"\n"
-"      After you submit your exam, your exam will be graded.\n"
-"    "
-msgstr ""
+msgid "After you submit your exam, your exam will be graded."
+msgstr "Après avoir soumis votre examen, il sera noté."
 
 #: templates/timed_exam/ready_to_submit.html:19
-msgid ""
-"\n"
-"      Yes, submit my timed exam.\n"
-"    "
-msgstr ""
+msgid "Yes, submit my timed exam."
+msgstr "Oui, soumettre mon examen chronométré."
 
 #: templates/timed_exam/ready_to_submit.html:25
-msgid ""
-"\n"
-"        No, I want to continue working.\n"
-"      "
-msgstr ""
+msgid "No, I want to continue working."
+msgstr "Non, je veux continuer à travailler."
 
 #: templates/timed_exam/submitted.html:6
-msgid ""
-"\n"
-"        The time allotted for this exam has expired. Your exam has been submitted and any work you completed will be graded.\n"
-"      "
-msgstr ""
+msgid "The time allotted for this exam has expired. Your exam has been submitted and any work you completed will be graded."
+msgstr "Le temps alloué pour cet examen a expiré. Votre examen a été soumis et tout travail que vous avez terminé sera noté."
 
 #: templates/timed_exam/submitted.html:10
-msgid ""
-"\n"
-"        You have submitted your timed exam.\n"
-"      "
-msgstr ""
+msgid "You have submitted your timed exam."
+msgstr "Vous avez soumis votre examen chronométré."
 
 #: templates/timed_exam/submitted.html:18
 #, python-format

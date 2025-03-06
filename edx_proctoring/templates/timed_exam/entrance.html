@@ -1,28 +1,14 @@
 {% load i18n %}
-<div class="sequence timed-exam entrance" data-exam-id="{{exam_id}}">
+<div class="sequence timed-exam entrance timed-exam-block" data-exam-id="{{exam_id}}">
   <h3>
-    {% blocktrans %}
-    {{ exam_name }} is a Timed Exam ({{total_time}})
-    {% endblocktrans %}
+    <i class="far fa-clock" aria-hidden="true"></i>
+    {% blocktrans %}{{ exam_name }} is a Timed Exam ({{total_time}}){% endblocktrans %}
   </h3>
   <p>
-    {% trans "This exam has a time limit associated with it." %}
-    <strong>
-      {% trans "To pass this exam, you must complete the problems in the time allowed." %}
-    </strong>
-    {% trans "After you select " %}
-    <strong>
-      {% trans "I am ready to start this timed exam," %}
-    </strong>
-    {% trans "you will have "%} {{total_time|lower}} {% trans " to complete and submit the exam." %}
+    {% blocktrans with lower_total_time=total_time|lower %}This exam has a strict time limit. To pass, you must complete all problems within the allotted time. Once you click "I am ready to start this timed exam" you will have " {{lower_total_time}} to complete and submit your answers.{% endblocktrans %}
   </p>
-  <button class="gated-sequence start-timed-exam action-primary" data-ajax-url="{{enter_exam_endpoint}}" data-exam-id="{{exam_id}}">
-    <a>
-      {% blocktrans %}
-        I am ready to start this timed exam.
-      {% endblocktrans %}
-      <span class="icon fa fa-arrow-circle-right" aria-hidden="true"></span>
-    </a>
+  <button class="gated-sequence start-timed-exam ds-button" data-ajax-url="{{enter_exam_endpoint}}" data-exam-id="{{exam_id}}">
+    {% trans "I am ready to start this timed exam." %}
   </button>
 </div>
 {% if not hide_extra_time_footer %}
