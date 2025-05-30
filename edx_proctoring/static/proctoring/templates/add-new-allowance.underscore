@@ -1,71 +1,44 @@
-<div class='modal-header'><%- gettext("Add a New Allowance") %></div>
+<div class='modal-header add-new-allowance'><%- gettext("Add a New Allowance") %></div>
 <form>
-    <h3 class='error-response'><h3>
-    <table class='compact'>
-        <tr>
-            <td>
-                <label><%- gettext("Special Exam") %></label>
-            </td>
-            <td>
-                <select id='proctored_exam'>
-                    <% _.each(proctored_exams, function(proctored_exam){ %>
-                    <option value="<%= proctored_exam.id %>">
-                    <%- interpolate(gettext(' %(exam_display_name)s '), { exam_display_name: proctored_exam.exam_name }, true) %>
-                    </option>
-                    <% }); %>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <label><%- gettext("Exam Type") %></label>
-            </td>
-            <td>
-                <label id='exam_type_label'>
-                    <%- gettext("Timed Exam") %>
-                </label>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <label><%- gettext("Allowance Type") %></label>
-            </td>
-            <td>
-                <select id="allowance_type">
-                    <% _.each(allowance_types, function(allowance_type){ %>
-                    <option value="<%= allowance_type[0] %>">
+    <h3 class='error-response'></h3>
+    <div class="fields">
+        <div class="field">
+            <ds-dropdown id='proctored_exam' required>
+                <span slot="label"><%- gettext("Special Exam") %></span>
+                <% _.each(proctored_exams, function(proctored_exam){ %>
+                    <label data-value="<%= proctored_exam.id %>">
+                        <%- interpolate(gettext(' %(exam_display_name)s '), { exam_display_name: proctored_exam.exam_name }, true) %>
+                    </label>
+                <% }); %>
+            </ds-dropdown>
+            <span id='exam_type_label'></span>
+        </div>
+        <div class="field">
+            <ds-dropdown id="allowance_type" required>
+                <span slot="label"><%- gettext("Allowance Type") %></span>
+                <% _.each(allowance_types, function(allowance_type){ %>
+                    <span data-value="<%= allowance_type[0] %>">
                         <%= allowance_type[1] %>
-                    </option>
-                    <% }); %>
-                </select>
+                    </span>
+                <% }); %>
+            </ds-dropdown>
+        </div>
+        <div class="field">
+            <label class="ds-input">
+                <span id='allowance_value_label'><%- gettext("Value") %></span>
+                <input type="text" id="allowance_value" required />
+                <span id='minutes_label'><%- gettext("minutes") %></span>
+            </label>
+        </div>
+        <div class="field">
+            <label class="ds-input">
+                <span><%- gettext("Username or Email") %></span>
+                <input type="text" id="user_info" required />
+            </label>
+        </div>
+    </div>
 
-                <label id='additional_time_label'>
-                    <%- gettext("Additional Time (minutes)") %>
-                </label>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <label id='allowance_value_label'><%- gettext("Value") %></label>
-            </td>
-            <td>
-                <input type="text" id="allowance_value" />
-                <label id='minutes_label'><%- gettext("minutes") %></label>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <label><%- gettext("Username or Email") %></label>
-            </td>
-            <td>
-                <input type="text" id="user_info" />
-            </td>
-        </tr>
-        <tr>
-            <td></td>
-            <td>
-                <input id='addNewAllowance' type='submit' value='Save' />
-            </td>
-        </tr>
-    </table>
+    <div class="modal-footer">
+        <button class="ds-button" type='submit'>Save</button>
+    </div>
 </form>

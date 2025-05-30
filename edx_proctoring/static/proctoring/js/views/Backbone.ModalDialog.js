@@ -22,23 +22,13 @@ Backbone.ModalView =
                 slideFromAbove: false,
                 slideFromBelow: false,
                 slideDistance: 150,
-                closeImageUrl: "/static/proctoring/close-modal.png",
-                closeImageHoverUrl: "/static/proctoring/close-modal-hover.png",
                 showModalAtScrollPosition: true,
                 permanentlyVisible: false,
                 backgroundClickClosesModal: true,
                 pressingEscapeClosesModal: true,
                 css: {
-                    "border": "1px solid #111",
                     "display": "block",
-                    "background-color": "#fff",
-                    "-webkit-box-shadow": "0px 0px 15px 4px rgba(0, 0, 0, 0.5)",
-                    "-moz-box-shadow": "0px 0px 15px 4px rgba(0, 0, 0, 0.5)",
-                    "box-shadow": "0px 0px 15px 4px rgba(0, 0, 0, 0.5)",
-                    "-webkit-border-radius": "10px",
-                    "-moz-border-radius": "10px",
-                    "border-radius": "6px",
-                    "padding": "0px"
+                    'position': 'static',
                 }
             },
 
@@ -160,46 +150,6 @@ Backbone.ModalView =
                 }
             },
 
-            recenter: function () {
-                return this.recentre();
-            },
-
-            recentre: // Re-centre the modal dialog after it has been displayed. Useful if the height changes after initial rendering eg; jquery ui tabs will hide tab sections
-                function () {
-                    var $el = $(this.el);
-                    var coords = {
-                        top: this.getCoordinate("top", this.options.css),
-                        left: this.getCoordinate("left", this.options.css),
-                        right: this.getCoordinate("right", this.options.css),
-                        bottom: this.getCoordinate("bottom", this.options.css),
-                        isEmpty: function () {
-                            return (this.top == null && this.left == null && this.right == null && this.bottom == null);
-                        }
-                    };
-
-                    var offsets = this.getOffsets();
-                    var centreY = $(window).height() / 2;
-                    var centreX = $(window).width() / 2;
-                    var modalContainer = this.modalContainer;
-                    var positionY = centreY - ($el.outerHeight() / 2);
-                    modalContainer.css({"top": (positionY + offsets.y) + "px"});
-
-                    var positionX = centreX - ($el.outerWidth() / 2);
-                    modalContainer.css({"left": (positionX + offsets.x) + "px"});
-
-                    return this;
-                },
-
-            getOffsets: function () {
-                var offsetY = 0, offsetX = 0;
-                if (this.options.showModalAtScrollPosition) {
-                    offsetY = $(document).scrollTop(),
-                        offsetX = $(document).scrollLeft()
-                }
-
-                return {x: offsetX, y: offsetY};
-            },
-
             showModal: function (options) {
                 this.defaultOptions.targetContainer = document.body;
                 this.options = $.extend(true, {}, this.defaultOptions, options, this.options);
@@ -213,22 +163,9 @@ Backbone.ModalView =
                 //Set the center alignment padding + border see css style
                 var $el = $(this.el);
 
-                var centreY = $(window).height() / 2;
-                var centreX = $(window).width() / 2;
                 var modalContainer = this.ensureModalContainer(this.options.targetContainer).empty();
 
                 $el.addClass("modal");
-
-                var coords = {
-                    top: this.getCoordinate("top", this.options.css),
-                    left: this.getCoordinate("left", this.options.css),
-                    right: this.getCoordinate("right", this.options.css),
-                    bottom: this.getCoordinate("bottom", this.options.css),
-                    isEmpty: function () {
-                        return (this.top == null && this.left == null && this.right == null && this.bottom == null);
-                    }
-                };
-
                 $el.css(this.options.css);
 
                 this.showModalBlanket();
@@ -247,89 +184,39 @@ Backbone.ModalView =
 
                 modalContainer.css({
                     "opacity": 0,
-                    "position": "absolute",
-                    "z-index": 999999});
-
-                var offsets = this.getOffsets();
-
-                // Only apply default centre coordinates if no css positions have been supplied
-                if (coords.isEmpty()) {
-                    var positionY = centreY - ($el.outerHeight() / 2);
-                    if (positionY < 10) positionY = 10;
-
-                    // Overriding the coordinates with explicit values if they are passed in
-                    if (typeof( this.options.y) !== "undefined") {
-                        positionY = this.options.y;
-                    }
-                    else {
-                        positionY += offsets.y;
-                    }
-
-                    modalContainer.css({"top": positionY + "px"});
-
-                    var positionX = centreX - ($el.outerWidth() / 2);
-                    // Overriding the coordinates with explicit values if they are passed in
-                    if (typeof( this.options.x) !== "undefined") {
-                        positionX = this.options.x;
-                    }
-                    else {
-                        positionX += offsets.x;
-                    }
-
-                    modalContainer.css({"left": positionX + "px"});
-                }
-                else {
-                    if (coords.top != null) modalContainer.css({"top": coords.top + offsets.y});
-                    if (coords.left != null) modalContainer.css({"left": coords.left + offsets.x});
-                    if (coords.right != null) modalContainer.css({"right": coords.right});
-                    if (coords.bottom != null) modalContainer.css({"bottom": coords.bottom});
-                }
+                    "position": "fixed",
+                    "z-index": 999999,
+                    'top': '50%',
+                    'left': '50%',
+                    'transform': 'translate(-50%, -50%)',
+                });
 
                 if (this.options.setFocusOnFirstFormControl) {
                     this.setFocusOnFirstFormControl();
                 }
 
                 if (this.options.showCloseButton) {
-                    var view = this;
-                    var image =
-                        $("<a href='#' id='modalCloseButton'>&#160;</a>")
-                            .css({
-                                "position": "absolute",
-                                "top": "-8px",
-                                "right": "-495px",
-                                "width": "32px",
-                                "height": "32px",
-                                "z-index": "999999",
-                                "background": "transparent url(" + view.options.closeImageUrl + ") top left no-repeat",
-                                "text-decoration": "none"})
-                            .appendTo(this.modalContainer)
-                            .hover(
-                            function () {
-                                $(this).css("background-image", "url(" + view.options.closeImageHoverUrl + ") !important");
-                            },
-                            function () {
-                                $(this).css("background-image", "url(" + view.options.closeImageUrl + ") !important");
-                            })
-                            .click(
-                            function (event) {
-                                event.preventDefault();
-                                view.hideModal();
-                            });
+                    $("<a href='#' id='modalCloseButton'><i class='far fa-xmark'></i></a>")
+                        .css({
+                            "position": "absolute",
+                            "top": "16px",
+                            "right": "24px",
+                            "width": "24px",
+                            "height": "24px",
+                            "z-index": "999999",
+                            "text-decoration": "none",
+                            'display': 'flex',
+                            'align-items': 'center',
+                            'justify-content': 'flex-end',
+                        })
+                        .appendTo(this.modalContainer)
+                        .click((event) => {
+                            event.preventDefault();
+                            this.hideModal();
+                        })
                 }
 
                 var animateProperties = {opacity: 1};
-                var modalOffset = modalContainer.offset();
-
-                if (this.options.slideFromAbove) {
-                    modalContainer.css({"top": (modalOffset.top - this.options.slideDistance) + "px"});
-                    animateProperties.top = coords.top;
-                }
-
-                if (this.options.slideFromBelow) {
-                    modalContainer.css({"top": (modalOffset.top + this.options.slideDistance) + "px"});
-                    animateProperties.top = coords.top;
-                }
-
                 this.modalContainer.animate(animateProperties, this.options.fadeInDuration);
 
                 return this;
