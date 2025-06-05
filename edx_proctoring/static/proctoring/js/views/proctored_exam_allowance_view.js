@@ -153,7 +153,7 @@ var edx = edx || {};
                         course_id: self.course_id,
                         proctored_exams: self.proctoredExamCollection.toJSON(),
                         proctored_exam_allowance_view: self,
-                        allowance_types: self.allowance_types
+                        allowance_types: self.allowance_types,
                     });
                 }
             });

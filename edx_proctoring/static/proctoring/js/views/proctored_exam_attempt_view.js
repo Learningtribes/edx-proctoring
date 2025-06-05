@@ -51,7 +51,6 @@ var edx = edx || {};
             this.initial_url = this.collection.url;
             this.attempt_url = this.model.url;
             this.collection.url = this.initial_url + this.course_id;
-            this.inSearchMode = false;
             this.searchText = "";
 
             /* re-render if the model changes */
@@ -62,32 +61,24 @@ var edx = edx || {};
         },
         events: {
             "click .remove-attempt": "onRemoveAttempt",
-            'click li > a.target-link': 'getPaginatedAttempts',
-            'click .search-attempts > span.search': 'searchAttempts',
-            'click .search-attempts > span.clear-search': 'clearSearch'
+            'change ds-pagination': 'getPaginatedAttempts',
+            'click .search-attempts > button': 'searchAttempts',
+            'keydown .search-attempts > input': 'searchAttempts',
         },
         searchAttempts: function(event) {
-            var searchText = $('#search_attempt_id').val();
-            if (searchText !== "") {
-                this.inSearchMode = true;
-                this.searchText = searchText;
-                this.collection.url = this.initial_url + this.course_id + "/search/" + searchText;
-                this.hydrate();
-                event.stopPropagation();
-                event.preventDefault();
-            }
-        },
-        clearSearch: function(event) {
-            this.inSearchMode = false;
-            this.searchText = "";
-            this.collection.url = this.initial_url + this.course_id;
+            if (event.type === 'keydown' && event.key !== 'Enter') return
+            const searchText = document.getElementById('search_attempt_id')?.value
+            if (!searchText) return
+
+            this.searchText = searchText;
+            this.collection.url = this.initial_url + this.course_id + "/search/" + searchText;
             this.hydrate();
             event.stopPropagation();
             event.preventDefault();
         },
         getPaginatedAttempts: function(event) {
-            var target = $(event.currentTarget);
-            this.collection.url = target.data('target-url');
+            const {attempt_url} = this.collection.toJSON()[0]
+            this.collection.url = `${attempt_url}?page=${event.detail}`;
             this.hydrate();
             event.stopPropagation();
             event.preventDefault();
@@ -109,14 +100,10 @@ var edx = edx || {};
             return cookieValue;
         },
         loadTemplateData: function () {
-            var self = this;
-            $.ajax({url: self.tempate_url, dataType: "html"})
-                .error(function (jqXHR, textStatus, errorThrown) {
-
-                })
-                .done(function (template_data) {
-                    self.template = _.template(template_data);
-                    self.hydrate();
+            $.ajax({url: this.tempate_url, dataType: "html"})
+                .done((template_data) => {
+                    this.template = _.template(template_data);
+                    this.hydrate();
                 });
         },
         hydrate: function () {
@@ -170,7 +157,6 @@ var edx = edx || {};
                     proctored_exam_attempts: data_json.proctored_exam_attempts,
                     pagination_info: data_json.pagination_info,
                     attempt_url: data_json.attempt_url,
-                    inSearchMode: this.inSearchMode,
                     searchText: this.searchText,
                     start_page: start_page,
                     end_page: end_page

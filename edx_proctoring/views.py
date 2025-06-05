@@ -53,7 +53,7 @@ from edx_proctoring.utils import (
     humanized_time,
 )
 
-ATTEMPTS_PER_PAGE = 25
+ATTEMPTS_PER_PAGE = 100
 
 LOG = logging.getLogger("edx_proctoring_views")
 
