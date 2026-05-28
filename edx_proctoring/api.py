@@ -1255,6 +1255,27 @@ def _check_eligibility_of_enrollment_mode(credit_state):
     return credit_state and credit_state['enrollment_mode'] == 'verified'
 
 
+def _is_verified_enrollment(user_id, course_id):
+    """
+    Check if user has verified enrollment mode without credit service.
+    Falls back to direct CourseEnrollment query when credit module is removed.
+    """
+    try:
+        from student.models import CourseEnrollment
+        from opaque_keys.edx.keys import CourseKey
+        course_key = CourseKey.from_string(unicode(course_id))
+        enrollment = CourseEnrollment.objects.filter(
+            user_id=user_id, course_id=course_key
+        ).first()
+        return bool(enrollment and enrollment.mode == 'verified')
+    except ImportError:
+        log.exception('Cannot import CourseEnrollment for proctoring eligibility check')
+        return False
+    except Exception:  # pylint: disable=broad-except
+        log.exception('Failed to check enrollment mode for proctoring eligibility')
+        return False
+
+
 def _get_ordered_prerequisites(prerequisites_statuses, filter_out_namespaces=None):
     """
     Apply filter and ordering of requirements status in our credit_state dictionary. This will
@@ -1510,18 +1531,7 @@ def get_attempt_status_summary(user_id, course_id, content_id):
             if not _check_eligibility_of_enrollment_mode(credit_state):
                 return None
         else:
-            # credit module removed - check enrollment mode directly
-            try:
-                from student.models import CourseEnrollment
-                from opaque_keys.edx.keys import CourseKey
-                course_key = CourseKey.from_string(unicode(course_id))
-                enrollment = CourseEnrollment.objects.filter(
-                    user_id=user_id, course_id=course_key
-                ).first()
-                if not enrollment or enrollment.mode != 'verified':
-                    return None
-            except Exception:  # pylint: disable=broad-except
-                log.exception('Failed to check enrollment mode for proctoring eligibility')
+            if not _is_verified_enrollment(user_id, course_id):
                 return None
 
     attempt = get_exam_attempt(exam['id'], user_id)
@@ -1766,18 +1776,7 @@ def _get_proctored_exam_view(exam, context, exam_id, user_id, course_id):
             if not has_mode:
                 return None
         else:
-            # credit module removed - check enrollment mode directly
-            try:
-                from student.models import CourseEnrollment
-                from opaque_keys.edx.keys import CourseKey
-                course_key = CourseKey.from_string(unicode(course_id))
-                enrollment = CourseEnrollment.objects.filter(
-                    user_id=user_id, course_id=course_key
-                ).first()
-                if not enrollment or enrollment.mode != 'verified':
-                    return None
-            except Exception:  # pylint: disable=broad-except
-                log.exception('Failed to check enrollment mode for proctoring eligibility')
+            if not _is_verified_enrollment(user_id, course_id):
                 return None
 
     attempt = get_exam_attempt(exam_id, user_id)
