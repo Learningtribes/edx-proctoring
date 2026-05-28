@@ -1504,10 +1504,25 @@ def get_attempt_status_summary(user_id, course_id, content_id):
     credit_state = None
     # practice exams always has an attempt status regardless of
     # eligibility
-    if credit_service and not exam['is_practice_exam']:
-        credit_state = credit_service.get_credit_state(user_id, unicode(course_id), return_course_info=True)
-        if not _check_eligibility_of_enrollment_mode(credit_state):
-            return None
+    if not exam['is_practice_exam']:
+        if credit_service:
+            credit_state = credit_service.get_credit_state(user_id, unicode(course_id), return_course_info=True)
+            if not _check_eligibility_of_enrollment_mode(credit_state):
+                return None
+        else:
+            # credit module removed - check enrollment mode directly
+            try:
+                from student.models import CourseEnrollment
+                from opaque_keys.edx.keys import CourseKey
+                course_key = CourseKey.from_string(unicode(course_id))
+                enrollment = CourseEnrollment.objects.filter(
+                    user_id=user_id, course_id=course_key
+                ).first()
+                if not enrollment or enrollment.mode != 'verified':
+                    return None
+            except Exception:  # pylint: disable=broad-except
+                log.exception('Failed to check enrollment mode for proctoring eligibility')
+                return None
 
     attempt = get_exam_attempt(exam['id'], user_id)
     if attempt:
@@ -1745,17 +1760,25 @@ def _get_proctored_exam_view(exam, context, exam_id, user_id, course_id):
     credit_state = context.get('credit_state')
 
     # see if only 'verified' track students should see this *except* if it is a practice exam
-    check_mode = (
-        settings.PROCTORING_SETTINGS.get('MUST_BE_VERIFIED_TRACK', True) and
-        credit_state
-    )
-
-    if check_mode:
-        has_mode = _check_eligibility_of_enrollment_mode(credit_state)
-        if not has_mode:
-            # user does not have the required enrollment mode
-            # so do not override view this is a quick exit
-            return None
+    if settings.PROCTORING_SETTINGS.get('MUST_BE_VERIFIED_TRACK', True):
+        if credit_state:
+            has_mode = _check_eligibility_of_enrollment_mode(credit_state)
+            if not has_mode:
+                return None
+        else:
+            # credit module removed - check enrollment mode directly
+            try:
+                from student.models import CourseEnrollment
+                from opaque_keys.edx.keys import CourseKey
+                course_key = CourseKey.from_string(unicode(course_id))
+                enrollment = CourseEnrollment.objects.filter(
+                    user_id=user_id, course_id=course_key
+                ).first()
+                if not enrollment or enrollment.mode != 'verified':
+                    return None
+            except Exception:  # pylint: disable=broad-except
+                log.exception('Failed to check enrollment mode for proctoring eligibility')
+                return None
 
     attempt = get_exam_attempt(exam_id, user_id)
 
