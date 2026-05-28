@@ -841,13 +841,14 @@ def update_attempt_status(exam_id, user_id, to_status,
         )
         log.info(log_msg)
 
-        credit_service.set_credit_requirement_status(
-            user_id=exam_attempt_obj.user_id,
-            course_key_or_id=exam['course_id'],
-            req_namespace='proctored_exam',
-            req_name=exam_attempt_obj.proctored_exam.content_id,
-            status=credit_requirement_status
-        )
+        if credit_service:
+            credit_service.set_credit_requirement_status(
+                user_id=exam_attempt_obj.user_id,
+                course_key_or_id=exam['course_id'],
+                req_namespace='proctored_exam',
+                req_name=exam_attempt_obj.proctored_exam.content_id,
+                status=credit_requirement_status
+            )
 
     if cascade_effects and ProctoredExamStudentAttemptStatus.is_a_cascadable_failure(to_status):
         if to_status == ProctoredExamStudentAttemptStatus.declined:
@@ -967,11 +968,14 @@ def update_attempt_status(exam_id, user_id, to_status,
 
     # call service to get course name.
     credit_service = get_runtime_service('credit')
-    credit_state = credit_service.get_credit_state(
-        exam_attempt_obj.user_id,
-        exam_attempt_obj.proctored_exam.course_id,
-        return_course_info=True
-    )
+    if credit_service:
+        credit_state = credit_service.get_credit_state(
+            exam_attempt_obj.user_id,
+            exam_attempt_obj.proctored_exam.course_id,
+            return_course_info=True
+        )
+    else:
+        credit_state = None
 
     default_name = _('your course')
     if credit_state:
@@ -1117,12 +1121,13 @@ def remove_exam_attempt(attempt_id, requesting_user):
     if ProctoredExamStudentAttemptStatus.needs_credit_status_update(to_status):
         # trigger credit workflow, as needed
         credit_service = get_runtime_service('credit')
-        credit_service.remove_credit_requirement_status(
-            user_id=user_id,
-            course_key_or_id=course_id,
-            req_namespace=u'proctored_exam',
-            req_name=content_id
-        )
+        if credit_service:
+            credit_service.remove_credit_requirement_status(
+                user_id=user_id,
+                course_key_or_id=course_id,
+                req_namespace=u'proctored_exam',
+                req_name=content_id
+            )
 
     # emit an event for 'deleted'
     exam = get_exam_by_content_id(course_id, content_id)
@@ -1890,7 +1895,10 @@ def get_student_view(user_id, course_id, content_id,
     credit_service = get_runtime_service('credit')
 
     # call service to get course end date.
-    credit_state = credit_service.get_credit_state(user_id, course_id, return_course_info=True)
+    if credit_service:
+        credit_state = credit_service.get_credit_state(user_id, course_id, return_course_info=True)
+    else:
+        credit_state = None
     course_end_date = credit_state.get('course_end_date') if credit_state else None
 
     exam_id = None
