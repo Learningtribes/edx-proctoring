@@ -1501,6 +1501,7 @@ def get_attempt_status_summary(user_id, course_id, content_id):
 
     # let's check credit eligibility
     credit_service = get_runtime_service('credit')
+    credit_state = None
     # practice exams always has an attempt status regardless of
     # eligibility
     if credit_service and not exam['is_practice_exam']:
@@ -1511,7 +1512,7 @@ def get_attempt_status_summary(user_id, course_id, content_id):
     attempt = get_exam_attempt(exam['id'], user_id)
     if attempt:
         status = attempt['status']
-    elif not exam['is_practice_exam'] and has_due_date_passed(credit_state.get('course_end_date', None)):
+    elif not exam['is_practice_exam'] and credit_state and has_due_date_passed(credit_state.get('course_end_date', None)):
         status = ProctoredExamStudentAttemptStatus.expired
     else:
         status = ProctoredExamStudentAttemptStatus.eligible
