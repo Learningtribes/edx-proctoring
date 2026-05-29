@@ -38,10 +38,10 @@ from edx_proctoring.api import (
 from edx_proctoring.serializers import ProctoredExamSerializer
 from edx_proctoring.backends.tests.test_review_payload import create_test_review_payload
 from edx_proctoring.backends.tests.test_software_secure import mock_response_content
-from edx_proctoring.runtime import set_runtime_service, get_runtime_service
+from edx_proctoring.runtime import set_runtime_service
 from edx_proctoring.urls import urlpatterns
 
-from .test_services import MockCreditService, MockInstructorService
+from .test_services import MockInstructorService
 from .utils import LoggedInTestCase
 
 
@@ -55,7 +55,7 @@ class ProctoredExamsApiTests(LoggedInTestCase):
         Build out test harnessing
         """
         super(ProctoredExamsApiTests, self).setUp()
-        set_runtime_service('credit', MockCreditService())
+
 
     def test_no_anonymous_access(self):
         """
@@ -89,7 +89,7 @@ class ProctoredExamViewTests(LoggedInTestCase):
         self.user.is_staff = True
         self.user.save()
         self.client.login_user(self.user)
-        set_runtime_service('credit', MockCreditService())
+
 
     def test_create_exam(self):
         """
@@ -416,7 +416,7 @@ class TestStudentProctoredExamAttempt(LoggedInTestCase):
         self.student_taking_exam = User()
         self.student_taking_exam.save()
 
-        set_runtime_service('credit', MockCreditService())
+
         set_runtime_service('instructor', MockInstructorService(is_user_course_staff=True))
 
     def _create_exam_attempt(self):
@@ -1618,9 +1618,8 @@ class TestStudentProctoredExamAttempt(LoggedInTestCase):
 
     def test_declined_attempt(self):
         """
-        Makes sure that a declined proctored attempt means that he/she fails credit requirement.
+        Makes sure that a declined proctored attempt can be created via API.
         """
-        # Create an exam.
         proctored_exam = ProctoredExam.objects.create(
             course_id='a/b/c',
             content_id='test_content',
@@ -1634,23 +1633,11 @@ class TestStudentProctoredExamAttempt(LoggedInTestCase):
             'start_clock': False,
             'attempt_proctored': False
         }
-        # create a exam attempt
         response = self.client.post(
             reverse('edx_proctoring.proctored_exam.attempt.collection'),
             attempt_data
         )
         self.assertEqual(response.status_code, 200)
-
-        # make sure we declined the requirement status
-
-        credit_service = get_runtime_service('credit')
-        credit_status = credit_service.get_credit_state(self.user.id, proctored_exam.course_id)
-
-        self.assertEqual(len(credit_status['credit_requirement_status']), 1)
-        self.assertEqual(
-            credit_status['credit_requirement_status'][0]['status'],
-            'declined'
-        )
 
     def test_exam_callback(self):
         """

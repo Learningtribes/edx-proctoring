@@ -508,21 +508,6 @@ def _was_review_status_acknowledged(is_status_acknowledged, due_datetime):
     return is_status_acknowledged and has_due_date_passed(due_datetime)
 
 
-def _create_and_decline_attempt(exam_id, user_id):
-    """
-    It will create the exam attempt and change the attempt's status to decline.
-    it will auto-decline further exams too
-    """
-
-    create_exam_attempt(exam_id, user_id)
-    update_attempt_status(
-        exam_id,
-        user_id,
-        ProctoredExamStudentAttemptStatus.declined,
-        raise_if_not_found=False
-    )
-
-
 def create_exam_attempt(exam_id, user_id, taking_as_proctored=False):
     """
     Creates an exam attempt for user_id against exam_id. There should only be
@@ -571,15 +556,8 @@ def create_exam_attempt(exam_id, user_id, taking_as_proctored=False):
             )
         )
 
-        # get the name of the user, if the service is available
         full_name = None
         email = None
-
-        credit_service = get_runtime_service('credit')
-        if credit_service:
-            credit_state = credit_service.get_credit_state(user_id, exam['course_id'])
-            full_name = credit_state['profile_fullname']
-            email = credit_state['student_email']
 
         context = {
             'time_limit_mins': allowed_time_limit_mins,
@@ -814,42 +792,6 @@ def update_attempt_status(exam_id, user_id, to_status,
 
     exam_attempt_obj.save()
 
-    # see if the status transition this changes credit requirement status
-    if ProctoredExamStudentAttemptStatus.needs_credit_status_update(to_status):
-
-        # trigger credit workflow, as needed
-        credit_service = get_runtime_service('credit')
-
-        if to_status == ProctoredExamStudentAttemptStatus.verified:
-            credit_requirement_status = 'satisfied'
-        elif to_status == ProctoredExamStudentAttemptStatus.submitted:
-            credit_requirement_status = 'submitted'
-        elif to_status == ProctoredExamStudentAttemptStatus.declined:
-            credit_requirement_status = 'declined'
-        else:
-            credit_requirement_status = 'failed'
-
-        log_msg = (
-            'Calling set_credit_requirement_status for '
-            'user_id {user_id} on {course_id} for '
-            'content_id {content_id}. Status: {status}'.format(
-                user_id=exam_attempt_obj.user_id,
-                course_id=exam['course_id'],
-                content_id=exam_attempt_obj.proctored_exam.content_id,
-                status=credit_requirement_status
-            )
-        )
-        log.info(log_msg)
-
-        if credit_service:
-            credit_service.set_credit_requirement_status(
-                user_id=exam_attempt_obj.user_id,
-                course_key_or_id=exam['course_id'],
-                req_namespace='proctored_exam',
-                req_name=exam_attempt_obj.proctored_exam.content_id,
-                status=credit_requirement_status
-            )
-
     if cascade_effects and ProctoredExamStudentAttemptStatus.is_a_cascadable_failure(to_status):
         if to_status == ProctoredExamStudentAttemptStatus.declined:
             # if user declines attempt, make sure we clear out the external_id and
@@ -966,27 +908,7 @@ def update_attempt_status(exam_id, user_id, to_status,
                 usage_key_or_id=exam_attempt_obj.proctored_exam.content_id,
             )
 
-    # call service to get course name.
-    credit_service = get_runtime_service('credit')
-    if credit_service:
-        credit_state = credit_service.get_credit_state(
-            exam_attempt_obj.user_id,
-            exam_attempt_obj.proctored_exam.course_id,
-            return_course_info=True
-        )
-    else:
-        credit_state = None
-
-    default_name = _('your course')
-    if credit_state:
-        course_name = credit_state.get('course_name', default_name)
-    else:
-        course_name = default_name
-        log.info(
-            "Could not find credit_state for user id %r in the course %r.",
-            exam_attempt_obj.user_id,
-            exam_attempt_obj.proctored_exam.course_id
-        )
+    course_name = _('your course')
     email = create_proctoring_attempt_status_email(
         user_id,
         exam_attempt_obj,
@@ -1117,18 +1039,6 @@ def remove_exam_attempt(attempt_id, requesting_user):
             usage_key_or_id=content_id,
         )
 
-    # see if the status transition this changes credit requirement status
-    if ProctoredExamStudentAttemptStatus.needs_credit_status_update(to_status):
-        # trigger credit workflow, as needed
-        credit_service = get_runtime_service('credit')
-        if credit_service:
-            credit_service.remove_credit_requirement_status(
-                user_id=user_id,
-                course_key_or_id=course_id,
-                req_namespace=u'proctored_exam',
-                req_name=content_id
-            )
-
     # emit an event for 'deleted'
     exam = get_exam_by_content_id(course_id, content_id)
     serialized_attempt_obj = ProctoredExamStudentAttemptSerializer(existing_attempt)
@@ -1242,23 +1152,9 @@ def get_active_exams_for_user(user_id, course_id=None):
     return result
 
 
-def _check_eligibility_of_enrollment_mode(credit_state):
-    """
-    Inspects that the enrollment mode of the user
-    is valid for proctoring
-    """
-
-    # Allow only the verified students to take the exam as a proctored exam
-    # Also make an exception for the honor students to take the "practice exam" as a proctored exam.
-    # For the rest of the enrollment modes, None is returned which shows the exam content
-    # to the student rather than the proctoring prompt.
-    return credit_state and credit_state['enrollment_mode'] == 'verified'
-
-
 def _is_verified_enrollment(user_id, course_id):
     """
-    Check if user has verified enrollment mode without credit service.
-    Falls back to direct CourseEnrollment query when credit module is removed.
+    Check if user has verified enrollment mode via direct CourseEnrollment query.
     """
     try:
         from student.models import CourseEnrollment
@@ -1274,138 +1170,6 @@ def _is_verified_enrollment(user_id, course_id):
     except Exception:  # pylint: disable=broad-except
         log.exception('Failed to check enrollment mode for proctoring eligibility')
         return False
-
-
-def _get_ordered_prerequisites(prerequisites_statuses, filter_out_namespaces=None):
-    """
-    Apply filter and ordering of requirements status in our credit_state dictionary. This will
-    return a list of statuses, filtered according to the filter_lambda (if non-None). We do this to ensure
-    that we check for satisfactory fulfillment of prerequistes that we do so IN THE RIGHT ORDER
-    """
-
-    _filter_out_namespaces = filter_out_namespaces if filter_out_namespaces else []
-
-    filtered_list = [
-        status
-        for status in prerequisites_statuses
-        if status['namespace'] not in _filter_out_namespaces
-    ]
-    sorted_list = sorted(filtered_list, key=lambda status: status['order'])
-
-    return sorted_list
-
-
-def _are_prerequirements_satisfied(prerequisites_statuses, evaluate_for_requirement_name=None,
-                                   filter_out_namespaces=None):
-    """
-    Returns a dict about the fulfillment of any pre-requisites in order to this exam
-    as proctored. The pre-requisites are taken from the credit requirements table. So if ordering
-    of requirements are - say - ICRV1, Proctoring1, ICRV2, and Proctoring2, then the user cannot take
-    Proctoring2 until there is an explicit pass on ICRV1, Proctoring1, ICRV2...
-
-    NOTE: If evaluate_for_requirement_name=None that means check all requirements
-
-    Return (dict):
-
-        {
-            # If all prerequisites are satisfied
-            'are_prerequisites_satisifed': True/False,
-
-            # A list of prerequisites that have been satisfied
-            'satisfied_prerequisites': [...]
-
-            # A list of prerequisites that have failed
-            'failed_prerequisites': [....],
-
-            # A list of prerequisites that are still pending
-            'pending_prerequisites': [...],
-        }
-
-    NOTE: We filter out any 'grade' requirement since the student will most likely not have fulfilled
-    those requirements while he/she is in the course
-    """
-
-    satisfied_prerequisites = []
-    failed_prerequisites = []
-    pending_prerequisites = []
-    declined_prerequisites = []
-
-    # insure an ordered and filtered list
-    # we remove 'grade' requirements since those cannot be
-    # satisfied while student is in the middle of a course
-    requirement_statuses = _get_ordered_prerequisites(
-        prerequisites_statuses,
-        filter_out_namespaces=filter_out_namespaces
-    )
-
-    # find ourselves in the list
-    ourself = None
-    if evaluate_for_requirement_name:
-        for idx, requirement in enumerate(requirement_statuses):
-            if requirement['name'] == evaluate_for_requirement_name:
-                ourself = requirement
-                break
-
-    # we are not in the list of requirements, look at all requirements
-    if not ourself:
-        idx = len(requirement_statuses)
-
-    # now that we have the index of ourselves in the ordered list, we can walk backwards
-    # and inspect all prerequisites
-
-    # we don't look at ourselves
-    idx = idx - 1
-    while idx >= 0:
-        requirement = requirement_statuses[idx]
-        status = requirement['status']
-        if status == 'satisfied':
-            satisfied_prerequisites.append(requirement)
-        elif status == 'failed':
-            failed_prerequisites.append(requirement)
-        elif status == 'declined':
-            declined_prerequisites.append(requirement)
-        else:
-            pending_prerequisites.append(requirement)
-
-        idx = idx - 1
-
-    return {
-        # all prequisites are satisfied if there are no failed or pending requirement
-        # statuses
-        'are_prerequisites_satisifed': (
-            not failed_prerequisites and not pending_prerequisites and not declined_prerequisites
-        ),
-        # note that we reverse the list here, because we assempled it by walking backwards
-        'satisfied_prerequisites': list(reversed(satisfied_prerequisites)),
-        'failed_prerequisites': list(reversed(failed_prerequisites)),
-        'pending_prerequisites': list(reversed(pending_prerequisites)),
-        'declined_prerequisites': list(reversed(declined_prerequisites))
-    }
-
-
-JUMPTO_SUPPORTED_NAMESPACES = [
-    'proctored_exam',
-    'reverification',
-]
-
-
-def _resolve_prerequisite_links(exam, prerequisites):
-    """
-    This will inject a jumpto URL into the list of prerequisites so that a user
-    can click through
-    """
-
-    for prerequisite in prerequisites:
-        jumpto_url = None
-        if prerequisite['namespace'] in JUMPTO_SUPPORTED_NAMESPACES and prerequisite['name']:
-            try:
-                jumpto_url = reverse('jump_to', args=[exam['course_id'], prerequisite['name']])
-            except NoReverseMatch:
-                log.exception("Can't find jumpto url for course %s", exam['course_id'])
-
-        prerequisite['jumpto_url'] = jumpto_url
-
-    return prerequisites
 
 
 STATUS_SUMMARY_MAP = {
@@ -1520,25 +1284,15 @@ def get_attempt_status_summary(user_id, course_id, content_id):
         })
         return summary
 
-    # let's check credit eligibility
-    credit_service = get_runtime_service('credit')
-    credit_state = None
     # practice exams always has an attempt status regardless of
     # eligibility
     if not exam['is_practice_exam']:
-        if credit_service:
-            credit_state = credit_service.get_credit_state(user_id, unicode(course_id), return_course_info=True)
-            if not _check_eligibility_of_enrollment_mode(credit_state):
-                return None
-        else:
-            if not _is_verified_enrollment(user_id, course_id):
-                return None
+        if not _is_verified_enrollment(user_id, course_id):
+            return None
 
     attempt = get_exam_attempt(exam['id'], user_id)
     if attempt:
         status = attempt['status']
-    elif not exam['is_practice_exam'] and credit_state and has_due_date_passed(credit_state.get('course_end_date', None)):
-        status = ProctoredExamStudentAttemptStatus.expired
     else:
         status = ProctoredExamStudentAttemptStatus.eligible
 
@@ -1767,17 +1521,10 @@ def _get_proctored_exam_view(exam, context, exam_id, user_id, course_id):
     """
     student_view_template = None
 
-    credit_state = context.get('credit_state')
-
     # see if only 'verified' track students should see this *except* if it is a practice exam
     if settings.PROCTORING_SETTINGS.get('MUST_BE_VERIFIED_TRACK', True):
-        if credit_state:
-            has_mode = _check_eligibility_of_enrollment_mode(credit_state)
-            if not has_mode:
-                return None
-        else:
-            if not _is_verified_enrollment(user_id, course_id):
-                return None
+        if not _is_verified_enrollment(user_id, course_id):
+            return None
 
     attempt = get_exam_attempt(exam_id, user_id)
 
@@ -1789,65 +1536,10 @@ def _get_proctored_exam_view(exam, context, exam_id, user_id, course_id):
         return None
 
     if not attempt_status:
-        # student has not started an attempt
-        # so, show them:
-        #       1) If there are failed prerequisites then block user and say why
-        #       2) If there are pending prerequisites then block user and allow them to remediate them
-        #       3) If there are declined prerequisites, then we auto-decline proctoring since user
-        #          explicitly declined their interest in credit
-        #       4) Otherwise - all prerequisites are satisfied - then give user
-        #          option to take exam as proctored
-
-        # get information about prerequisites
-
-        credit_requirement_status = (
-            credit_state.get('credit_requirement_status')
-            if credit_state else []
-        )
-
-        prerequisite_status = _are_prerequirements_satisfied(
-            credit_requirement_status,
-            evaluate_for_requirement_name=exam['content_id'],
-            filter_out_namespaces=['grade']
-        )
-
-        # add any prerequisite information, if applicable
-        context.update({
-            'prerequisite_status': prerequisite_status
-        })
-
-        # if exam due date has passed, then we can't take the exam
         if has_due_date_passed(exam['due_date']):
             student_view_template = 'proctored_exam/expired.html'
-        elif not prerequisite_status['are_prerequisites_satisifed']:
-            # do we have any declined prerequisites, if so, then we
-            # will auto-decline this proctored exam
-            if prerequisite_status['declined_prerequisites']:
-                # user hasn't a record of attempt, create one now
-                # so we can mark it as declined
-                _create_and_decline_attempt(exam_id, user_id)
-                return None
-
-            # do we have failed prerequisites? That takes priority in terms of
-            # messaging
-            if prerequisite_status['failed_prerequisites']:
-                # Let's resolve the URLs to jump to this prequisite
-                prerequisite_status['failed_prerequisites'] = _resolve_prerequisite_links(
-                    exam,
-                    prerequisite_status['failed_prerequisites']
-                )
-                student_view_template = 'proctored_exam/failed-prerequisites.html'
-            else:
-                # Let's resolve the URLs to jump to this prequisite
-                prerequisite_status['pending_prerequisites'] = _resolve_prerequisite_links(
-                    exam,
-                    prerequisite_status['pending_prerequisites']
-                )
-                student_view_template = 'proctored_exam/pending-prerequisites.html'
         else:
             student_view_template = 'proctored_exam/entrance.html'
-            # emit an event that the user was presented with the option
-            # to start timed exam
             emit_event(exam, 'option-presented')
     elif attempt_status == ProctoredExamStudentAttemptStatus.started:
         # when we're taking the exam we should not override the view
@@ -1915,14 +1607,7 @@ def get_student_view(user_id, course_id, content_id,
     if user_role != 'student':
         return None
 
-    credit_service = get_runtime_service('credit')
-
-    # call service to get course end date.
-    if credit_service:
-        credit_state = credit_service.get_credit_state(user_id, course_id, return_course_info=True)
-    else:
-        credit_state = None
-    course_end_date = credit_state.get('course_end_date') if credit_state else None
+    course_end_date = None
 
     exam_id = None
     try:

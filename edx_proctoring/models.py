@@ -122,7 +122,6 @@ class ProctoredExamStudentAttemptStatus(object):
     might change over time.
     """
 
-    # the student is eligible to decide if he/she wants to pursue credit
     eligible = 'eligible'
 
     # the attempt record has been created, but the exam has not yet
@@ -199,15 +198,6 @@ class ProctoredExamStudentAttemptStatus(object):
         return status in [
             cls.eligible, cls.created, cls.download_software_clicked, cls.ready_to_start, cls.started,
             cls.ready_to_submit
-        ]
-
-    @classmethod
-    def needs_credit_status_update(cls, to_status):
-        """
-        Returns a boolean if the passed in to_status calls for an update to the credit requirement status.
-        """
-        return to_status in [
-            cls.verified, cls.rejected, cls.declined, cls.submitted, cls.error
         ]
 
     @classmethod

@@ -17,7 +17,6 @@ from edx_proctoring.api import (
     update_exam,
     get_exam_by_id,
     add_allowance_for_user,
-    get_exam_attempt,
     get_student_view,
     update_attempt_status,
 )
@@ -27,9 +26,6 @@ from edx_proctoring.models import (
     ProctoredExamStudentAttempt,
     ProctoredExamStudentAttemptStatus,
 )
-from edx_proctoring.runtime import set_runtime_service
-
-from .test_services import MockCreditServiceWithCourseEndDate, MockCreditServiceNone
 from .utils import ProctoredExamTestCase
 
 
@@ -76,10 +72,6 @@ class ProctoredExamStudentViewTests(ProctoredExamTestCase):
             'display_name': self.exam_name,
             'default_time_limit_mins': 90,
             'is_practice_exam': False,
-            'credit_state': {
-                'enrollment_mode': 'verified',
-                'credit_requirement_status': [],
-            },
             'verification_status': 'approved',
             'verification_url': '/reverify',
         }
@@ -100,10 +92,6 @@ class ProctoredExamStudentViewTests(ProctoredExamTestCase):
             'is_proctored': True,
             'allow_proctoring_opt_out': True,
             'is_practice_exam': False,
-            'credit_state': {
-                'enrollment_mode': 'verified',
-                'credit_requirement_status': [],
-            },
             'verification_status': 'approved',
             'verification_url': '/reverify',
         }
@@ -150,27 +138,17 @@ class ProctoredExamStudentViewTests(ProctoredExamTestCase):
 
     def test_get_honor_view_with_practice_exam(self):
         """
-        Test for get_student_view prompting when the student is enrolled in non-verified
-        track for a practice exam, this should return not None, meaning
-        student will see proctored content
+        Practice exams are shown regardless of enrollment mode.
         """
-        rendered_response = self.render_practice_exam({
-            'credit_state': {
-                'enrollment_mode': 'honor',
-            },
-        })
+        rendered_response = self.render_practice_exam()
         self.assertIsNotNone(rendered_response)
 
-    def test_get_honor_view(self):
+    @patch('edx_proctoring.api._is_verified_enrollment', return_value=False)
+    def test_get_honor_view(self, _mock_enrollment):
         """
-        Test for get_student_view prompting when the student is enrolled in non-verified
-        track, this should return None
+        Non-verified students should not see proctored exam prompts.
         """
-        rendered_response = self.render_proctored_exam({
-            'credit_state': {
-                'enrollment_mode': 'honor'
-            },
-        })
+        rendered_response = self.render_proctored_exam()
         self.assertIsNone(rendered_response)
 
     @ddt.data(
@@ -200,87 +178,6 @@ class ProctoredExamStudentViewTests(ProctoredExamTestCase):
             'allow_proctoring_opt_out': False,
         })
         self.assertNotIn(self.take_exam_without_proctoring_msg, rendered_response)
-
-    @ddt.data(
-        'pending',
-        'failed',
-    )
-    def test_proctored_only_with_prereqs(self, status):
-        """
-        This test verifies that learners are not given the option to take
-        an exam without proctoring when they have prerequisites and when
-        the setting allow_proctoring_opt_out is false.
-        """
-        rendered_response = self.render_proctored_exam({
-            'allow_proctoring_opt_out': False,
-            'credit_state': {
-                'enrollment_mode': 'verified',
-                'credit_requirement_status': [
-                    {
-                        'namespace': 'proctored_exam',
-                        'name': 'foo',
-                        'display_name': 'Mock Requirement',
-                        'status': status,
-                        'order': 0
-                    }
-                ]
-            },
-        })
-        self.assertNotIn(self.take_exam_without_proctoring_msg, rendered_response)
-
-    @ddt.data(
-        ('reverification', None, 'The following prerequisites are in a <strong>pending</strong> state', True),
-        ('reverification', 'pending', 'The following prerequisites are in a <strong>pending</strong> state', True),
-        ('reverification', 'failed', 'You did not satisfy the following prerequisites', True),
-        ('reverification', 'satisfied', 'To be eligible for course credit', False),
-        ('reverification', 'declined', None, False),
-        ('proctored_exam', None, 'The following prerequisites are in a <strong>pending</strong> state', True),
-        ('proctored_exam', 'pending', 'The following prerequisites are in a <strong>pending</strong> state', True),
-        ('proctored_exam', 'failed', 'You did not satisfy the following prerequisites', True),
-        ('proctored_exam', 'satisfied', 'To be eligible for course credit', False),
-        ('proctored_exam', 'declined', None, False),
-        ('grade', 'failed', 'To be eligible for course credit', False),
-        # this is nonsense, but let's double check it
-        ('grade', 'declined', 'To be eligible for course credit', False),
-    )
-    @ddt.unpack
-    def test_prereq_scenarios(self, namespace, req_status, expected_content, should_see_prereq):
-        """
-        This test asserts that proctoring will not be displayed under the following
-        conditions:
-
-        - Verified student has not completed all 'reverification' requirements
-        """
-
-        # user hasn't attempted reverifications
-        rendered_response = self.render_proctored_exam({
-            'credit_state': {
-                'enrollment_mode': 'verified',
-                'credit_requirement_status': [
-                    {
-                        'namespace': namespace,
-                        'name': 'foo',
-                        'display_name': 'Foo Requirement',
-                        'status': req_status,
-                        'order': 0
-                    }
-                ]
-            },
-        })
-
-        if expected_content:
-            self.assertIn(expected_content, rendered_response)
-        else:
-            self.assertIsNone(rendered_response)
-
-        if req_status == 'declined' and not expected_content:
-            # also we should have auto-declined if a pre-requisite was declined
-            attempt = get_exam_attempt(self.proctored_exam_id, self.user_id)
-            self.assertIsNotNone(attempt)
-            self.assertEqual(attempt['status'], ProctoredExamStudentAttemptStatus.declined)
-
-        if should_see_prereq:
-            self.assertIn('Foo Requirement', rendered_response)
 
     def test_student_view_non_student(self):
         """
@@ -322,54 +219,6 @@ class ProctoredExamStudentViewTests(ProctoredExamTestCase):
         )
         self.assertIsNone(rendered_response)
 
-    def test_proctored_exam_passed_end_date(self):
-        """
-        Verify that we get a None back on a proctored exam
-        if the course end date is passed
-        """
-
-        set_runtime_service('credit', MockCreditServiceWithCourseEndDate())
-
-        rendered_response = get_student_view(
-            user_id=self.user_id,
-            course_id='foo',
-            content_id='bar',
-            context={
-                'is_proctored': True,
-                'is_practice_exam': False,
-                'display_name': self.exam_name,
-                'default_time_limit_mins': 90,
-                'due_date': None,
-                'hide_after_due': False,
-            },
-            user_role='student'
-        )
-        self.assertIsNone(rendered_response)
-
-    def test_practice_exam_passed_end_date(self):
-        """
-        Verify that we get a None back on a practice exam
-        if the course end date is passed
-        """
-
-        set_runtime_service('credit', MockCreditServiceWithCourseEndDate())
-
-        rendered_response = get_student_view(
-            user_id=self.user_id,
-            course_id='foo',
-            content_id='bar',
-            context={
-                'is_proctored': True,
-                'is_practice_exam': True,
-                'display_name': self.exam_name,
-                'default_time_limit_mins': 90,
-                'due_date': None,
-                'hide_after_due': False,
-            },
-            user_role='student'
-        )
-        self.assertIsNone(rendered_response)
-
     def test_get_disabled_student_view(self):
         """
         Assert that a disabled proctored exam will not override the
@@ -387,24 +236,6 @@ class ProctoredExamStudentViewTests(ProctoredExamTestCase):
                 }
             )
         )
-
-    def test_student_response_without_credit_state(self):
-        """
-        Test that response is not None for users who are not enrolled.
-        """
-        set_runtime_service('credit', MockCreditServiceNone())
-        rendered_response = get_student_view(
-            user_id=self.user_id,
-            course_id=self.course_id,
-            content_id=self.content_id,
-            context={
-                'is_proctored': True,
-                'display_name': self.exam_name,
-                'default_time_limit_mins': 90
-            },
-            user_role='student'
-        )
-        self.assertIsNotNone(rendered_response)
 
     @ddt.data(False, True)
     def test_get_studentview_unstarted_exam(self, allow_proctoring_opt_out):

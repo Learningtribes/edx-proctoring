@@ -6,115 +6,14 @@ Test for the xBlock service
 
 from __future__ import absolute_import
 
-from datetime import datetime, timedelta
 import types
 import unittest
-import pytz
 
 from edx_proctoring.services import (
     ProctoringService
 )
 from edx_proctoring.exceptions import UserNotFoundException
 from edx_proctoring import api as edx_proctoring_api
-
-
-class MockCreditService(object):
-    """
-    Simple mock of the Credit Service
-    """
-
-    def __init__(self, enrollment_mode='verified', profile_fullname='Wolfgang von Strucker',
-                 course_name='edx demo', student_email='foo@bar'):
-        """
-        Initializer
-        """
-        self.order = 0
-        self.status = {
-            'course_name': course_name,
-            'enrollment_mode': enrollment_mode,
-            'profile_fullname': profile_fullname,
-            'student_email': student_email,
-            'credit_requirement_status': []
-        }
-
-    def get_credit_state(self, user_id, course_key, return_course_info=False):  # pylint: disable=unused-argument
-        """
-        Mock implementation
-        """
-        return self.status
-
-    # pylint: disable=unused-argument
-    def set_credit_requirement_status(self, user_id, course_key_or_id, req_namespace,
-                                      req_name, status="satisfied", reason=None):
-        """
-        Mock implementation
-        """
-
-        found = [
-            requirement
-            for requirement in self.status['credit_requirement_status']
-            if requirement['name'] == req_name and
-            requirement['namespace'] == req_namespace and
-            requirement['course_id'] == unicode(course_key_or_id)
-        ]
-
-        if not found:
-            self.status['credit_requirement_status'].append({
-                'course_id': unicode(course_key_or_id),
-                'req_namespace': req_namespace,
-                'namespace': req_namespace,
-                'name': req_name,
-                'status': status,
-                'order': self.order,
-            })
-        else:
-            found[0]['status'] = status
-
-        self.order = self.order + 1
-
-    # pylint: disable=unused-argument
-    # pylint: disable=invalid-name
-    def remove_credit_requirement_status(self, user_id, course_key_or_id, req_namespace, req_name):
-        """
-        Mock implementation for removing the credit requirement status.
-        """
-
-        for requirement in self.status['credit_requirement_status']:
-            match = (
-                requirement['name'] == req_name and
-                requirement['namespace'] == req_namespace and
-                requirement['course_id'] == unicode(course_key_or_id)
-            )
-            if match:
-                self.status['credit_requirement_status'].remove(requirement)
-                break
-
-        return True
-
-
-class MockCreditServiceWithCourseEndDate(MockCreditService):
-    """
-    mock of the Credit Service but overrides get_credit_state to return a past course_end_date
-    """
-
-    def get_credit_state(self, user_id, course_key, return_course_info=False):  # pylint: disable=unused-argument
-        """
-        Mock implementation
-        """
-        self.status['course_end_date'] = datetime.now(pytz.UTC) + timedelta(days=-1)
-        return self.status
-
-
-class MockCreditServiceNone(MockCreditService):
-    """
-    Mock Credit Service that returns None for the credit state every time.
-    """
-
-    def get_credit_state(self, user_id, course_key, return_course_info=False):  # pylint: disable=unused-argument
-        """
-        Mock implementation
-        """
-        return None
 
 
 class MockInstructorService(object):

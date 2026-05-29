@@ -27,7 +27,6 @@ from edx_proctoring.models import (
 )
 
 from edx_proctoring.tests.test_services import (
-    MockCreditService,
     MockInstructorService,
 )
 from edx_proctoring.runtime import set_runtime_service
@@ -127,76 +126,9 @@ class ProctoredExamTestCase(LoggedInTestCase):
         self.practice_exam_id = self._create_practice_exam()
         self.disabled_exam_id = self._create_disabled_exam()
 
-        set_runtime_service('credit', MockCreditService())
         set_runtime_service('instructor', MockInstructorService(is_user_course_staff=True))
 
         tracker.register_tracker(MockTracker())
-
-        self.prerequisites = [
-            {
-                'namespace': 'proctoring',
-                'name': 'proc1',
-                'order': 2,
-                'status': 'satisfied',
-            },
-            {
-                'namespace': 'reverification',
-                'name': 'rever1',
-                'order': 1,
-                'status': 'satisfied',
-            },
-            {
-                'namespace': 'grade',
-                'name': 'grade1',
-                'order': 0,
-                'status': 'pending',
-            },
-            {
-                'namespace': 'reverification',
-                'name': 'rever2',
-                'order': 3,
-                'status': 'failed',
-            },
-            {
-                'namespace': 'proctoring',
-                'name': 'proc2',
-                'order': 4,
-                'status': 'pending',
-            },
-        ]
-
-        self.declined_prerequisites = [
-            {
-                'namespace': 'proctoring',
-                'name': 'proc1',
-                'order': 2,
-                'status': 'satisfied',
-            },
-            {
-                'namespace': 'reverification',
-                'name': 'rever1',
-                'order': 1,
-                'status': 'satisfied',
-            },
-            {
-                'namespace': 'grade',
-                'name': 'grade1',
-                'order': 0,
-                'status': 'pending',
-            },
-            {
-                'namespace': 'reverification',
-                'name': 'rever2',
-                'order': 3,
-                'status': 'declined',
-            },
-            {
-                'namespace': 'proctoring',
-                'name': 'proc2',
-                'order': 4,
-                'status': 'pending',
-            },
-        ]
 
     def tearDown(self):
         """
