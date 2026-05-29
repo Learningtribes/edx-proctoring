@@ -1160,10 +1160,10 @@ def _is_verified_enrollment(user_id, course_id):
         from student.models import CourseEnrollment
         from opaque_keys.edx.keys import CourseKey
         course_key = CourseKey.from_string(unicode(course_id))
-        enrollment = CourseEnrollment.objects.filter(
+        enrollment = CourseEnrollment.objects.get(
             user_id=user_id, course_id=course_key
-        ).first()
-        return bool(enrollment and enrollment.mode == 'verified')
+        )
+        return enrollment.mode == 'verified'
     except ImportError:
         log.exception('Cannot import CourseEnrollment for proctoring eligibility check')
         return False
