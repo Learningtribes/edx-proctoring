@@ -244,9 +244,6 @@ class SoftwareSecureBackendProvider(ProctoringBackendProvider):
         for comment in payload.get('desktopComments', []):
             self._save_review_comment(review, comment)
 
-        # we could have gotten a review for an archived attempt
-        # this should *not* cause an update in our credit
-        # eligibility table
         if not is_archived_attempt:
             # update our attempt status, note we have to import api.py here because
             # api.py imports software_secure.py, so we'll get an import circular reference
@@ -303,8 +300,6 @@ class SoftwareSecureBackendProvider(ProctoringBackendProvider):
             )
         )
 
-        # updating attempt status will trigger workflow
-        # (i.e. updating credit eligibility table)
         from edx_proctoring.api import update_attempt_status
 
         update_attempt_status(

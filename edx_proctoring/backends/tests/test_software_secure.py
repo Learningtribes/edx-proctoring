@@ -13,7 +13,7 @@ from httmock import all_requests, HTTMock
 
 from django.test import TestCase
 from django.contrib.auth.models import User
-from edx_proctoring.runtime import set_runtime_service, get_runtime_service
+from edx_proctoring.runtime import set_runtime_service
 
 from edx_proctoring.backends import get_backend_provider
 from edx_proctoring.exceptions import BackendProvideCannotRegisterAttempt
@@ -44,7 +44,6 @@ from edx_proctoring.models import (
 )
 from edx_proctoring.backends.tests.test_review_payload import create_test_review_payload
 from edx_proctoring.tests.test_services import (
-    MockCreditService,
     MockInstructorService,
     MockGradesService,
     MockCertificateService
@@ -107,7 +106,6 @@ class SoftwareSecureTests(TestCase):
         self.user = User(username='foo', email='foo@bar.com')
         self.user.save()
 
-        set_runtime_service('credit', MockCreditService())
         set_runtime_service('instructor', MockInstructorService())
         set_runtime_service('grades', MockGradesService())
         set_runtime_service('certificates', MockCertificateService())
@@ -117,7 +115,6 @@ class SoftwareSecureTests(TestCase):
         When tests are done
         """
         super(SoftwareSecureTests, self).tearDown()
-        set_runtime_service('credit', None)
         set_runtime_service('grades', None)
         set_runtime_service('certificates', None)
 
@@ -343,13 +340,10 @@ class SoftwareSecureTests(TestCase):
                 )
                 self.assertGreater(attempt_id, 0)
 
-    def test_single_name_attempt(self):
+    def test_create_attempt(self):
         """
-        Tests to make sure we can parse a fullname which does not have any spaces in it
+        Tests that an exam attempt can be created via the provider.
         """
-
-        set_runtime_service('credit', MockCreditService())
-
         exam_id = create_exam(
             course_id='foo/bar/baz',
             content_id='content',
@@ -362,13 +356,10 @@ class SoftwareSecureTests(TestCase):
             attempt_id = create_exam_attempt(exam_id, self.user.id, taking_as_proctored=True)
             self.assertIsNotNone(attempt_id)
 
-    def test_unicode_attempt(self):
+    def test_unicode_exam_name(self):
         """
-        Tests to make sure we can handle an attempt when a user's fullname has unicode characters in it
+        Tests to make sure we can handle unicode exam names
         """
-
-        set_runtime_service('credit', MockCreditService(profile_fullname=u'अआईउऊऋऌ अआईउऊऋऌ'))
-
         exam_id = create_exam(
             course_id='foo/bar/baz',
             content_id='content',
@@ -451,14 +442,13 @@ class SoftwareSecureTests(TestCase):
         self.assertIsNone(provider.stop_exam_attempt(None, None))
 
     @ddt.data(
-        ('Clean', 'satisfied'),
-        ('Rules Violation', 'satisfied'),
-        ('Suspicious', 'failed'),
-        ('Not Reviewed', 'failed'),
+        'Clean',
+        'Rules Violation',
+        'Suspicious',
+        'Not Reviewed',
     )
-    @ddt.unpack
     @patch('edx_proctoring.constants.REQUIRE_FAILURE_SECOND_REVIEWS', False)
-    def test_review_callback(self, review_status, credit_requirement_status):
+    def test_review_callback(self, review_status):
         """
         Simulates callbacks from SoftwareSecure with various statuses
         """
@@ -473,7 +463,6 @@ class SoftwareSecureTests(TestCase):
             is_proctored=True
         )
 
-        # be sure to use the mocked out SoftwareSecure handlers
         with HTTMock(mock_response_content):
             attempt_id = create_exam_attempt(
                 exam_id,
@@ -492,7 +481,6 @@ class SoftwareSecureTests(TestCase):
 
         provider.on_review_callback(json.loads(test_payload))
 
-        # make sure that what we have in the Database matches what we expect
         review = ProctoredExamSoftwareSecureReview.get_review_by_attempt_code(attempt['attempt_code'])
 
         self.assertIsNotNone(review)
@@ -502,20 +490,9 @@ class SoftwareSecureTests(TestCase):
         self.assertIsNotNone(review.raw_data)
         self.assertIsNone(review.reviewed_by)
 
-        # now check the comments that were stored
         comments = ProctoredExamSoftwareSecureComment.objects.filter(review_id=review.id)
 
         self.assertEqual(len(comments), 6)
-
-        # check that we got credit requirement set appropriately
-
-        credit_service = get_runtime_service('credit')
-        credit_status = credit_service.get_credit_state(self.user.id, 'foo/bar/baz')
-
-        self.assertEqual(
-            credit_status['credit_requirement_status'][0]['status'],
-            credit_requirement_status
-        )
 
     def test_review_bad_code(self):
         """

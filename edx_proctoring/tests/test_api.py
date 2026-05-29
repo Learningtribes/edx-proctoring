@@ -40,8 +40,6 @@ from edx_proctoring.api import (
     get_attempt_status_summary,
     update_exam_attempt,
     _check_for_attempt_timeout,
-    _get_ordered_prerequisites,
-    _are_prerequirements_satisfied,
     create_exam_review_policy,
     get_review_policy_by_exam_id,
     _get_review_policy_by_exam_id,
@@ -70,12 +68,9 @@ from edx_proctoring.models import (
     ProctoredExamStudentAttemptStatus,
     ProctoredExamReviewPolicy,
 )
-from edx_proctoring.runtime import set_runtime_service, get_runtime_service
+from edx_proctoring.runtime import set_runtime_service
 
 from .test_services import (
-    MockCreditService,
-    MockCreditServiceNone,
-    MockCreditServiceWithCourseEndDate,
     MockGradesService,
     MockCertificateService
 )
@@ -619,48 +614,26 @@ class ProctoredExamApiTests(ProctoredExamTestCase):
             remove_exam_attempt(proctored_exam_student_attempt.id, requesting_user={})
 
     @ddt.data(
-        (ProctoredExamStudentAttemptStatus.verified, 'satisfied'),
-        (ProctoredExamStudentAttemptStatus.submitted, 'submitted'),
-        (ProctoredExamStudentAttemptStatus.declined, 'declined'),
-        (ProctoredExamStudentAttemptStatus.error, 'failed'),
-        (ProctoredExamStudentAttemptStatus.second_review_required, None),
+        ProctoredExamStudentAttemptStatus.verified,
+        ProctoredExamStudentAttemptStatus.submitted,
+        ProctoredExamStudentAttemptStatus.declined,
+        ProctoredExamStudentAttemptStatus.error,
+        ProctoredExamStudentAttemptStatus.second_review_required,
     )
-    @ddt.unpack
-    def test_remove_exam_attempt_with_status(self, to_status, requirement_status):
+    def test_remove_exam_attempt_with_status(self, to_status):
         """
-        Test to remove the exam attempt which calls
-        the Credit Service method `remove_credit_requirement_status`.
+        Test removing an exam attempt after transitioning to various statuses.
         """
-
         exam_attempt = self._create_started_exam_attempt()
         update_attempt_status(
             exam_attempt.proctored_exam_id,
             self.user.id,
             to_status
         )
+        remove_exam_attempt(exam_attempt.proctored_exam_id, requesting_user=self.user)
 
-        # make sure the credit requirement status is there
-        credit_service = get_runtime_service('credit')
-        credit_status = credit_service.get_credit_state(self.user.id, exam_attempt.proctored_exam.course_id)
-
-        if requirement_status:
-            self.assertEqual(len(credit_status['credit_requirement_status']), 1)
-            self.assertEqual(
-                credit_status['credit_requirement_status'][0]['status'],
-                requirement_status
-            )
-
-            # now remove exam attempt which calls the credit service method 'remove_credit_requirement_status'
-            remove_exam_attempt(exam_attempt.proctored_exam_id, requesting_user=self.user)
-
-            # make sure the credit requirement status is no longer there
-            credit_status = credit_service.get_credit_state(self.user.id, exam_attempt.proctored_exam.course_id)
-
-            self.assertEqual(len(credit_status['credit_requirement_status']), 0)
-        else:
-            # There is not an expected changed to the credit requirement table
-            # given the attempt status
-            self.assertEqual(len(credit_status['credit_requirement_status']), 0)
+        with self.assertRaises(StudentExamAttemptDoesNotExistsException):
+            get_exam_attempt_by_id(exam_attempt.id)
 
     def test_stop_a_non_started_exam(self):
         """
@@ -784,66 +757,6 @@ class ProctoredExamApiTests(ProctoredExamTestCase):
         self.assertEqual(len(all_exams), 2)
         self.assertEqual(all_exams[0]['id'], updated_exam_attempt_id)
         self.assertEqual(all_exams[1]['id'], exam_attempt.id)
-
-    def test_proctored_status_summary_passed_end_date(self):
-        """
-        Assert that we get the expected status summaries
-        """
-
-        set_runtime_service('credit', MockCreditServiceWithCourseEndDate())
-
-        exam = get_exam_by_id(self.proctored_exam_id)
-        summary = get_attempt_status_summary(self.user.id, exam['course_id'], exam['content_id'])
-
-        expected = {
-            'status': ProctoredExamStudentAttemptStatus.expired,
-            'short_description': 'Proctored Option No Longer Available',
-            'suggested_icon': 'fa-times-circle',
-            'in_completed_state': False
-        }
-        self.assertIn(summary, [expected])
-
-    def test_submitted_credit_state(self):
-        """
-        Verify that putting an attempt into the submitted state will also mark
-        the credit requirement as submitted
-        """
-        exam_attempt = self._create_started_exam_attempt()
-        update_attempt_status(
-            exam_attempt.proctored_exam_id,
-            self.user.id,
-            ProctoredExamStudentAttemptStatus.submitted
-        )
-
-        credit_service = get_runtime_service('credit')
-        credit_status = credit_service.get_credit_state(self.user.id, exam_attempt.proctored_exam.course_id)
-
-        self.assertEqual(len(credit_status['credit_requirement_status']), 1)
-        self.assertEqual(
-            credit_status['credit_requirement_status'][0]['status'],
-            'submitted'
-        )
-
-    def test_error_credit_state(self):
-        """
-        Verify that putting an attempt into the error state will also mark
-        the credit requirement as failed
-        """
-        exam_attempt = self._create_started_exam_attempt()
-        update_attempt_status(
-            exam_attempt.proctored_exam_id,
-            self.user.id,
-            ProctoredExamStudentAttemptStatus.error
-        )
-
-        credit_service = get_runtime_service('credit')
-        credit_status = credit_service.get_credit_state(self.user.id, exam_attempt.proctored_exam.course_id)
-
-        self.assertEqual(len(credit_status['credit_requirement_status']), 1)
-        self.assertEqual(
-            credit_status['credit_requirement_status'][0]['status'],
-            'failed'
-        )
 
     @ddt.data(
         (
@@ -1242,20 +1155,6 @@ class ProctoredExamApiTests(ProctoredExamTestCase):
             )
         )
 
-    def test_update_attempt_without_credit_state(self):
-        """
-        Test updating an attempt that does not have a corresponding credit state.
-        """
-        exam_attempt = self._create_started_exam_attempt()
-        set_runtime_service('credit', MockCreditServiceNone())
-        new_attempt = update_attempt_status(
-            exam_attempt.proctored_exam_id,
-            self.user.id,
-            ProctoredExamStudentAttemptStatus.verified
-        )
-
-        self.assertEqual(new_attempt, exam_attempt.id)
-
     @ddt.data(
         (
             ProctoredExamStudentAttemptStatus.eligible, {
@@ -1481,12 +1380,8 @@ class ProctoredExamApiTests(ProctoredExamTestCase):
         )
     )
     @ddt.unpack
-    def test_practice_status_honor(self, status, expected):
-        """
-        Assert that we get the expected status summaries
-        """
-
-        set_runtime_service('credit', MockCreditService(enrollment_mode='honor'))
+    @patch('edx_proctoring.api._is_verified_enrollment', return_value=False)
+    def test_practice_status_honor(self, status, expected, _mock_enrollment):
 
         exam_attempt = self._create_started_practice_exam_attempt()
 
@@ -1506,9 +1401,9 @@ class ProctoredExamApiTests(ProctoredExamTestCase):
 
     def test_practice_no_attempt(self):
         """
-        Assert that we get the expected status summaries
+        Assert that we get the expected status summaries for practice exams
+        regardless of enrollment mode.
         """
-        set_runtime_service('credit', MockCreditService(course_name=''))
         expected = {
             'status': ProctoredExamStudentAttemptStatus.eligible,
             'short_description': 'Ungraded Practice Exam',
@@ -1518,7 +1413,6 @@ class ProctoredExamApiTests(ProctoredExamTestCase):
 
         exam = get_exam_by_id(self.practice_exam_id)
 
-        set_runtime_service('credit', MockCreditService(enrollment_mode='honor'))
         summary = get_attempt_status_summary(
             self.user.id,
             exam['course_id'],
@@ -1526,24 +1420,11 @@ class ProctoredExamApiTests(ProctoredExamTestCase):
         )
         self.assertIn(summary, [expected])
 
-        set_runtime_service('credit', MockCreditService())
-        summary = get_attempt_status_summary(
-            self.user.id,
-            exam['course_id'],
-            exam['content_id']
-        )
-        self.assertIn(summary, [expected])
-
-    @ddt.data(
-        'honor', 'staff'
-    )
-    def test_status_summary_honor(self, enrollment_mode):
+    @patch('edx_proctoring.api._is_verified_enrollment', return_value=False)
+    def test_status_summary_non_verified(self, _mock_enrollment):
         """
         Make sure status summary is None for a non-verified person
         """
-
-        set_runtime_service('credit', MockCreditService(enrollment_mode=enrollment_mode))
-
         exam_attempt = self._create_started_exam_attempt()
 
         summary = get_attempt_status_summary(
@@ -1595,109 +1476,12 @@ class ProctoredExamApiTests(ProctoredExamTestCase):
         self.assertEquals(attempt['last_poll_timestamp'], now)
         self.assertEquals(attempt['last_poll_ipaddr'], '1.1.1.1')
 
-    def test_requirement_status_order(self):
+    @patch('edx_proctoring.api._is_verified_enrollment', return_value=False)
+    def test_summary_non_verified_enrollment(self, _mock_enrollment):
         """
-        Make sure that we get a correct ordered list of all statuses sorted in the correct
-        order
-        """
-
-        # try unfiltered version first
-        ordered_list = _get_ordered_prerequisites(self.prerequisites)
-
-        self.assertEqual(len(ordered_list), 5)
-
-        # check the ordering
-        for idx in range(5):
-            self.assertEqual(ordered_list[idx]['order'], idx)
-
-        # now filter out the 'grade' namespace
-        ordered_list = _get_ordered_prerequisites(self.prerequisites, ['grade'])
-
-        self.assertEqual(len(ordered_list), 4)
-
-        # check the ordering
-        for idx in range(4):
-            # we +1 on the idx because we know we filtered out one
-            self.assertEqual(ordered_list[idx]['order'], idx + 1)
-
-        # check other expected ordering
-        self.assertEqual(ordered_list[0]['namespace'], 'reverification')
-        self.assertEqual(ordered_list[0]['name'], 'rever1')
-        self.assertEqual(ordered_list[1]['namespace'], 'proctoring')
-        self.assertEqual(ordered_list[1]['name'], 'proc1')
-        self.assertEqual(ordered_list[2]['namespace'], 'reverification')
-        self.assertEqual(ordered_list[2]['name'], 'rever2')
-        self.assertEqual(ordered_list[3]['namespace'], 'proctoring')
-        self.assertEqual(ordered_list[3]['name'], 'proc2')
-
-    @ddt.data(
-        ('rever1', True, 0, 0, 0, 0),
-        ('proc1', True, 1, 0, 0, 0),
-        ('rever2', True, 2, 0, 0, 0),
-        ('proc2', False, 2, 1, 0, 0),
-        ('unknown', False, 2, 1, 1, 0),
-        (None, False, 2, 1, 1, 0),
-    )
-    @ddt.unpack
-    def test_are_prerequisite_satisifed(self, content_id,
-                                        expected_are_prerequisites_satisifed,
-                                        expected_len_satisfied_prerequisites,
-                                        expected_len_failed_prerequisites,
-                                        expected_len_pending_prerequisites,
-                                        expected_len_declined_prerequisites):
-        """
-        verify proper operation of the logic when computing is prerequisites are satisfied
-        """
-
-        results = _are_prerequirements_satisfied(
-            self.prerequisites,
-            content_id,
-            filter_out_namespaces=['grade']
-        )
-
-        self.assertEqual(results['are_prerequisites_satisifed'], expected_are_prerequisites_satisifed)
-        self.assertEqual(len(results['satisfied_prerequisites']), expected_len_satisfied_prerequisites)
-        self.assertEqual(len(results['failed_prerequisites']), expected_len_failed_prerequisites)
-        self.assertEqual(len(results['pending_prerequisites']), expected_len_pending_prerequisites)
-        self.assertEqual(len(results['declined_prerequisites']), expected_len_declined_prerequisites)
-
-    @ddt.data(
-        ('rever1', True, 0, 0, 0, 0),
-        ('proc1', True, 1, 0, 0, 0),
-        ('rever2', True, 2, 0, 0, 0),
-        ('proc2', False, 2, 0, 0, 1),
-        ('unknown', False, 2, 0, 1, 1),
-        (None, False, 2, 0, 1, 1),
-    )
-    @ddt.unpack
-    def test_declined_prerequisites(self, content_id,
-                                    expected_are_prerequisites_satisifed,
-                                    expected_len_satisfied_prerequisites,
-                                    expected_len_failed_prerequisites,
-                                    expected_len_pending_prerequisites,
-                                    expected_len_declined_prerequisites):
-        """
-        verify proper operation of the logic when computing is prerequisites are satisfied
-        """
-
-        results = _are_prerequirements_satisfied(
-            self.declined_prerequisites,
-            content_id,
-            filter_out_namespaces=['grade']
-        )
-
-        self.assertEqual(results['are_prerequisites_satisifed'], expected_are_prerequisites_satisifed)
-        self.assertEqual(len(results['satisfied_prerequisites']), expected_len_satisfied_prerequisites)
-        self.assertEqual(len(results['failed_prerequisites']), expected_len_failed_prerequisites)
-        self.assertEqual(len(results['pending_prerequisites']), expected_len_pending_prerequisites)
-        self.assertEqual(len(results['declined_prerequisites']), expected_len_declined_prerequisites)
-
-    def test_summary_without_credit_state(self):
-        """
-        Test that attempt status summary is None for users who are not enrolled.
+        Test that attempt status summary is None for non-verified users.
         """
         exam_id = self._create_exam_with_due_time()
-        set_runtime_service('credit', MockCreditServiceNone())
 
         timed_exam = get_exam_by_id(exam_id)
         summary = get_attempt_status_summary(

@@ -574,8 +574,8 @@ class StudentProctoredExamAttemptCollection(AuthenticatedAPIView):
                 taking_as_proctored=attempt_proctored
             )
 
-            # if use elected not to take as proctored exam, then
-            # use must take as open book, and loose credit eligibility
+            # if user elected not to take as proctored exam, then
+            # user must take as open book
             if exam['is_proctored'] and not attempt_proctored:
                 update_attempt_status(
                     exam_id,

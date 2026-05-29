@@ -15,10 +15,9 @@ from edx_proctoring.api import (
 from edx_proctoring.models import (
     ProctoredExamStudentAttemptStatus,
 )
-from edx_proctoring.runtime import set_runtime_service, get_runtime_service
+from edx_proctoring.runtime import set_runtime_service
 
 from .test_services import (
-    MockCreditService,
     MockGradesService,
     MockCertificateService
 )
@@ -75,7 +74,6 @@ class ProctoredExamEmailTests(ProctoredExamTestCase):
         """
 
         exam_attempt = self._create_started_exam_attempt()
-        credit_state = get_runtime_service('credit').get_credit_state(self.user_id, self.course_id)
         update_attempt_status(
             exam_attempt.proctored_exam_id,
             self.user.id,
@@ -92,35 +90,8 @@ class ProctoredExamEmailTests(ProctoredExamTestCase):
         actual_body = self._normalize_whitespace(mail.outbox[0].body)
         self.assertIn('Hi tester,', actual_body)
         self.assertIn('Your proctored exam "Test Exam"', actual_body)
-        self.assertIn(credit_state['course_name'], actual_body)
+        self.assertIn('your course', actual_body)
         self.assertIn(expected_message_string, actual_body)
-
-    def test_send_email_unicode(self):
-        """
-        Assert that email can be sent with a unicode course name.
-        """
-
-        course_name = u'अआईउऊऋऌ अआईउऊऋऌ'
-        set_runtime_service('credit', MockCreditService(course_name=course_name))
-
-        exam_attempt = self._create_started_exam_attempt()
-        credit_state = get_runtime_service('credit').get_credit_state(self.user_id, self.course_id)
-        update_attempt_status(
-            exam_attempt.proctored_exam_id,
-            self.user.id,
-            ProctoredExamStudentAttemptStatus.submitted
-        )
-        self.assertEquals(len(mail.outbox), 1)
-
-        # Verify the subject
-        actual_subject = self._normalize_whitespace(mail.outbox[0].subject)
-        self.assertIn('Proctoring Review In Progress', actual_subject)
-        self.assertIn(course_name, actual_subject)
-
-        # Verify the body
-        actual_body = self._normalize_whitespace(mail.outbox[0].body)
-        self.assertIn('was submitted successfully', actual_body)
-        self.assertIn(credit_state['course_name'], actual_body)
 
     @ddt.data(
         ProctoredExamStudentAttemptStatus.eligible,
